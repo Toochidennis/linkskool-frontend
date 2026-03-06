@@ -1,9 +1,10 @@
-import type { Course } from "./course";
-
 export interface Program {
-  programId: number;
+  id: number;
+  slug: string;
   name: string;
   description: string;
   imageUrl: string | null;
-  courses: Course[];
+  courseCount: number;
+  sponsor: string | null;
+  shortname: string | null;
 }

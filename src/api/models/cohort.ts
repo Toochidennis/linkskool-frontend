@@ -1,27 +1,13 @@
 export type TrialType = "views" | "days" | null;
-
 export interface Cohort {
-  id: number;
-  programId: number;
-  courseId: number;
-  slug: string;
-  courseName: string;
+  cohortId: number;
   title: string;
-  description: string;
-  benefits: string | null;
-  code: string | null;
-  startDate: string;
-  endDate: string;
-  status: string;
-  imageUrl: string | null;
-  capacity: number | null;
-  deliveryMode: string | null;
-  zoomLink: string | null;
-  isFree: number | boolean;
+  slug: string;
+  discount: number | null;
+  cost: number | null;
+  isFree: boolean;
   trialType: TrialType;
-  trialValue: number;
-  cost: string;
-  instructorName: string | null;
-  createdAt: string;
-  updatedAt: string;
+  trialValue: number | null;
+  enrollmentDeadline: string | null,
+  learningType: 'instructor_led' | 'self_paced';
 }

@@ -1,45 +1,32 @@
 import { apiRequest } from "../client";
-import type { Cohort } from "../models/cohort";
 import type { Program } from "../models/program";
-import type { CohortEnrollmentRequest } from "../models/enrollment";
-import { toCamel } from "../util/transform";
-
-export type AgeRange = { min: number; max: number };
-export type ProgramFilters = {
-    profileId?: number;
-    birthDate?: string;
-    ageRanges?: AgeRange[];
-    signal?: AbortSignal;
-};
+import type { CourseEnrollmentRequest } from "../models/enrollment";
+import type { ProgramCourses } from "../models/program-courses";
+import type { CourseDetail } from "../models/course-detail";
 
 export const programService = {
-    async getPrograms(filters: ProgramFilters = {}) {
-        const params = new URLSearchParams();
-        if (filters.profileId !== undefined) {
-            params.set("profile_id", String(filters.profileId));
-        }
-        // if (filters.birthDate) {
-        //     params.set("birth_date", filters.birthDate);
-        // }
-        // if (filters.ageRanges && filters.ageRanges.length > 0) {
-        //     params.set("age_ranges", JSON.stringify(filters.ageRanges));
-        // }
-
-        const path = params.toString() ? `learning/programs?${params.toString()}` : "learning/programs";
-        const response = await apiRequest<Program[]>(path, {
+    async getAllPrograms(signal?: AbortSignal) {
+        const response = await apiRequest<Program[]>('programs', {
             method: "GET",
-            signal: filters.signal,
+            signal: signal,
         });
-        return toCamel(response.data) as Program[];
+        return response.data;
     },
-    async getCohort(cohortId: number, signal?: AbortSignal) {
-        const response = await apiRequest<Cohort>(`learning/cohorts/${cohortId}`, {
+    async getProgramCourses(programSlug: string, signal?: AbortSignal) {
+        const response = await apiRequest<ProgramCourses>(`programs/${programSlug}/courses`, {
             method: "GET",
             signal,
         });
-        return toCamel(response.data) as Cohort;
+        return response.data;
     },
-    async enrollInCohort(cohortId: number, payload: CohortEnrollmentRequest, signal?: AbortSignal) {
+    async getProgramCourseCohortDetails(cohortSlug: string, signal?: AbortSignal) {
+        const response = await apiRequest<CourseDetail>(`programs/cohorts/${cohortSlug}`, {
+            method: "GET",
+            signal,
+        });
+        return response.data;
+    },
+    async enrollInCourse(cohortId: number, payload: CourseEnrollmentRequest, signal?: AbortSignal) {
         const response = await apiRequest(`learning/cohorts/${cohortId}/enrollments`, {
             method: "POST",
             signal,

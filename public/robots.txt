@@ -1,0 +1,24 @@
+# Linkskool robots.txt
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*.xml$
+Disallow: /admin/
+Disallow: /private/
+
+# Crawl delay to prevent server overload (not required, but recommended)
+Crawl-delay: 0
+
+# Sitemap location
+Sitemap: https://linkskool.com/sitemap.xml
+
+# Specific rules for Google
+User-agent: Googlebot
+Allow: /
+
+# Specific rules for Bing
+User-agent: Bingbot
+Allow: /

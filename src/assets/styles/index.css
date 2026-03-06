@@ -16,12 +16,25 @@ body {
 }
 
 @theme {
-  --color-primary: #1f3d2b;
-  --color-secondary: #c5a559;
-  --color-light: #f9f7f3;
+  /* Primary Blue Palette */
+  --color-primary: #1e40af;
+  --color-primary-light: #3b82f6;
+  --color-primary-lighter: #60a5fa;
+  --color-primary-lightest: #dbeafe;
 
-  --font-sans: Inter, Poppins, ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Playfair Display', serif;
+  /* Orange/Accent Palette */
+  --color-orange: #f97316;
+  --color-orange-light: #fb923c;
+  --color-orange-lighter: #fdba74;
+  --color-orange-lightest: #ffedd5;
+
+  /* Secondary Gold */
+  --color-secondary: #f59e0b;
+  --color-light: #f0f9ff;
+  --color-lighter: #e0f2fe;
+
+  --font-sans: Inter, 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Poppins', sans-serif;
 
   /* Radii -> rounded, rounded-md, rounded-button, etc. */
   --radius-sm: 4px;
@@ -33,6 +46,40 @@ body {
   --radius-3xl: 32px;
   --radius-full: 9999px;
   --radius-button: 8px;
+}
+
+/* Modern Scrollbar Styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.55);
+  border-radius: 9999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* Hide scrollbar when not hovering */
+*:not(:hover)::-webkit-scrollbar-thumb {
+  background-color: transparent;
 }
 
 :root {
@@ -112,20 +159,20 @@ input[type='number'] {
 }
 
 .saving-indicator {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 24px;
-    background: var(--theme-surface);
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    font-weight: 600;
-    color: var(--theme-text-muted);
-    animation: slideUp 0.3s ease-out;
-    z-index: 100;
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--theme-surface);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+  color: var(--theme-text-muted);
+  animation: slideUp 0.3s ease-out;
+  z-index: 100;
 }
 
 @keyframes slideUp {

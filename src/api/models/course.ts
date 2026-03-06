@@ -1,20 +1,11 @@
-export type TrialType = "views" | "days" | null;
+import type { Cohort } from './cohort';
 
 export interface Course {
   courseId: number;
+  slug?: string | null;
   courseName: string;
   description: string;
   imageUrl: string | null;
-  hasActiveCohort: boolean;
-  cohortId: number | null;
-  isFree: boolean;
-  trialType: TrialType;
-  trialValue: number | null;
-  cost: number;
-  isEnrolled: boolean;
-  isCompleted: boolean;
-  enrollmentStatus: string | null;
-  paymentStatus: string | null;
-  lessonsTaken: number | null;
-  trialExpiryDate: string | null;
+  videoUrl?: string | null;
+  cohort: Cohort | null;
 }

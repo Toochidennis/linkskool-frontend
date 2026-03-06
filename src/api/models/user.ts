@@ -1,12 +1,17 @@
 export interface User {
-    id?: number;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    gender?: string;
-    birthDate?: string;
-    password?: string;
-    createdAt?: string;
-    profilePicture?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  gender?: string | null;
+  birthDate?: string | null;
+  phone?: string | null;
+}
+
+export interface AuthPayload {
+  token?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  userId?: number;
+  [key: string]: unknown;
 }

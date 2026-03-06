@@ -1,3 +1,8 @@
-export * from './activation-response.model';
-export * from './activation-status.model';
-export * from './plan.model';
+export type { CourseCohortDetail, CourseDetail } from './course-detail';
+export type { Cohort, TrialType } from './cohort';
+export type { Course } from './course';
+export * from './enrollment';
+export * from './program-courses';
+export * from './program';
+export * from './serverResponse';
+export * from './user';
