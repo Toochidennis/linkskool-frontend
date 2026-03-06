@@ -68,7 +68,10 @@ const subscribeNewsletter = () => {
                     <ul class="space-y-3">
                         <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
-                        <li><RouterLink to="/privacy-policy" class="hover:text-white transition-colors">Privacy Policy</RouterLink></li>
+                        <li>
+                            <RouterLink to="/privacy-policy" class="hover:text-white transition-colors">Privacy Policy
+                            </RouterLink>
+                        </li>
                         <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
                     </ul>
                 </div>
