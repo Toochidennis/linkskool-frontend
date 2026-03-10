@@ -6,3 +6,6 @@ export * from './program-courses';
 export * from './program';
 export * from './serverResponse';
 export * from './user';
+export * from './faqs';
+export * from './payment-payload';
+export * from './reserve-payload';

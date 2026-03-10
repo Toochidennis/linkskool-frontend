@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import AppFooter from '@/components/AppFooter.vue'
@@ -28,9 +28,11 @@ const courses = ref<Course[]>([])
 const isLoading = ref(false)
 const isSubmitting = ref(false)
 const showBillingModal = ref(false)
+const enrollmentAction = ref<'pay' | 'reserve'>('pay')
 const loadError = ref('')
 const submitError = ref('')
 const successMessage = ref('')
+const currentTime = ref(Date.now())
 
 const selectedCourseIds = ref<number[]>([])
 
@@ -125,6 +127,56 @@ const formatPrice = (value: number) => nairaFormatter.format(value)
 
 const courseImage = (imageUrl: string | null | undefined) => resolveAssetUrl(imageUrl)
 
+const parseDate = (value: string | null | undefined) => {
+  if (!value) return null
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+const formatLongDate = (value: Date | null) => {
+  if (!value) return 'Not set'
+  return value.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+const programStartDate = computed(() => parseDate(program.value?.startDate))
+
+const programCountdown = computed(() => {
+  const startDate = programStartDate.value
+  if (!startDate) return null
+
+  const diff = startDate.getTime() - currentTime.value
+  if (diff <= 0) {
+    return { isStarted: true, days: 0, hours: 0, minutes: 0, seconds: 0 }
+  }
+
+  const totalSeconds = Math.floor(diff / 1000)
+  return {
+    isStarted: false,
+    days: Math.floor(totalSeconds / 86400),
+    hours: Math.floor((totalSeconds % 86400) / 3600),
+    minutes: Math.floor((totalSeconds % 3600) / 60),
+    seconds: totalSeconds % 60,
+  }
+})
+
+const countdownSegments = computed(() => {
+  const countdown = programCountdown.value
+  if (!countdown || countdown.isStarted) return []
+
+  return [
+    { label: 'Days', value: countdown.days },
+    { label: 'Hours', value: countdown.hours },
+    { label: 'Minutes', value: countdown.minutes },
+    { label: 'Seconds', value: countdown.seconds },
+  ]
+})
+
 const courseFinalPrice = (course: CourseSelectionModel) => {
   if (course.isFree) {
     return 0
@@ -148,11 +200,7 @@ const displayTrial = (course: CourseSelectionModel) => {
 const learningTypeLabel = (course: CourseSelectionModel) =>
   course.learningType === 'instructor_led' ? 'Instructor-led' : 'Self-paced'
 
-const parseEnrollmentDeadline = (course: CourseSelectionModel) => {
-  if (!course.enrollmentDeadline) return null
-  const parsed = new Date(course.enrollmentDeadline)
-  return Number.isNaN(parsed.getTime()) ? null : parsed
-}
+const parseEnrollmentDeadline = (course: CourseSelectionModel) => parseDate(course.enrollmentDeadline)
 
 const formatDeadlineDateTime = (course: CourseSelectionModel) => {
   const deadline = parseEnrollmentDeadline(course)
@@ -211,7 +259,7 @@ const clearSelection = () => {
   selectedCourseIds.value = []
 }
 
-const openBillingModal = () => {
+const openEnrollmentModal = (mode: 'pay' | 'reserve') => {
   submitError.value = ''
   successMessage.value = ''
 
@@ -220,6 +268,7 @@ const openBillingModal = () => {
     return
   }
 
+  enrollmentAction.value = mode
   showBillingModal.value = true
 }
 
@@ -266,7 +315,7 @@ const validateForm = () => {
   return valid
 }
 
-const submitPayment = async () => {
+const submitEnrollment = async () => {
   submitError.value = ''
   successMessage.value = ''
 
@@ -297,16 +346,20 @@ const submitPayment = async () => {
           lastName: customerForm.lastName.trim(),
           email: customerForm.email.trim(),
           phoneNumber: customerForm.phoneNumber.trim(),
-          mode: 'pay',
+          mode: enrollmentAction.value,
         }),
       ),
     )
 
-    successMessage.value = 'Payment initiated and enrollment completed for selected courses.'
+    successMessage.value = enrollmentAction.value === 'reserve'
+      ? 'Seats reserved for the selected courses.'
+      : 'Payment initiated and enrollment completed for selected courses.'
     showBillingModal.value = false
   } catch (error) {
     console.error('Failed to submit multi-course enrollment:', error)
-    submitError.value = 'Payment could not be completed right now. Please try again.'
+    submitError.value = enrollmentAction.value === 'reserve'
+      ? 'Reservation could not be completed right now. Please try again.'
+      : 'Payment could not be completed right now. Please try again.'
   } finally {
     isSubmitting.value = false
   }
@@ -341,8 +394,19 @@ const fetchProgramCourses = async () => {
   }
 }
 
+let countdownInterval: number | null = null
+
 onMounted(() => {
+  countdownInterval = window.setInterval(() => {
+    currentTime.value = Date.now()
+  }, 1000)
   fetchProgramCourses()
+})
+
+onBeforeUnmount(() => {
+  if (countdownInterval !== null) {
+    window.clearInterval(countdownInterval)
+  }
 })
 </script>
 
@@ -371,6 +435,26 @@ onMounted(() => {
           <p class="text-blue-100 text-lg leading-relaxed max-w-3xl">
             Select one or more courses from this program and complete a single checkout flow.
           </p>
+
+          <div v-if="programStartDate" class="mt-6 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-orange-100">Program starts</p>
+                <p class="mt-1 text-xl font-semibold text-white">{{ formatLongDate(programStartDate) }}</p>
+                <p class="mt-1 text-sm text-blue-100">
+                  {{ programCountdown?.isStarted ? 'This program has started.' : 'Countdown to your next cohort.' }}
+                </p>
+              </div>
+
+              <div v-if="!programCountdown?.isStarted" class="grid grid-cols-4 gap-2 sm:gap-3">
+                <div v-for="segment in countdownSegments" :key="segment.label"
+                  class="min-w-16 rounded-xl bg-white/12 px-3 py-2 text-center">
+                  <p class="text-2xl font-bold text-white">{{ String(segment.value).padStart(2, '0') }}</p>
+                  <p class="text-[11px] uppercase tracking-[0.18em] text-blue-100">{{ segment.label }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div v-else>
@@ -500,6 +584,24 @@ onMounted(() => {
               </div>
 
               <div class="space-y-2 pt-1 text-sm">
+                <div v-if="programStartDate" class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                  <div class="flex items-start gap-3">
+                    <div
+                      class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white text-blue-600">
+                      <i class="fa-solid fa-calendar-day"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Program Start Date</p>
+                      <p class="mt-1 text-sm font-semibold text-gray-900">{{ formatLongDate(programStartDate) }}</p>
+                      <p class="mt-1 text-xs text-gray-600">
+                        {{ programCountdown?.isStarted
+                          ? 'Program is already in progress.'
+                          : `${countdownSegments[0]?.value ?? 0}d ${String(countdownSegments[1]?.value ?? 0).padStart(2, '0')}h ${String(countdownSegments[2]?.value ?? 0).padStart(2, '0')}m ${String(countdownSegments[3]?.value ?? 0).padStart(2, '0')}s left` }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="flex items-center justify-between text-gray-600">
                   <span>Selected Courses</span>
                   <span>{{ selectedCourses.length }}</span>
@@ -537,14 +639,22 @@ onMounted(() => {
 
               <button type="button"
                 class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                :disabled="isSubmitting" @click="openBillingModal">
+                :disabled="isSubmitting" @click="openEnrollmentModal('pay')">
                 <i v-if="isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
                 <i v-else class="fa-solid fa-lock"></i>
-                <span>{{ isSubmitting ? 'Processing...' : 'Pay & Enroll' }}</span>
+                <span>{{ isSubmitting && enrollmentAction === 'pay' ? 'Processing...' : 'Pay Now' }}</span>
+              </button>
+
+              <button type="button"
+                class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-semibold hover:border-orange-400 hover:text-orange-600 hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                :disabled="isSubmitting" @click="openEnrollmentModal('reserve')">
+                <i v-if="isSubmitting && enrollmentAction === 'reserve'" class="fa-solid fa-spinner fa-spin"></i>
+                <i v-else class="fa-solid fa-bookmark"></i>
+                <span>{{ isSubmitting && enrollmentAction === 'reserve' ? 'Processing...' : 'Reserve Seat' }}</span>
               </button>
 
               <p class="text-xs text-gray-500 text-center">
-                Secure checkout. Your selected courses will be activated after successful payment.
+                Secure checkout for paid enrollment, or reserve your spot now and complete payment later.
               </p>
             </div>
           </aside>
@@ -557,8 +667,14 @@ onMounted(() => {
       <div class="max-w-2xl mx-auto mt-10 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
         <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-gray-900">Billing Information</h2>
-            <p class="text-sm text-gray-600 mt-1">Enter your details to continue payment for selected courses.</p>
+            <h2 class="text-2xl font-bold text-gray-900">
+              {{ enrollmentAction === 'reserve' ? 'Reserve Your Seat' : 'Billing Information' }}
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">
+              {{ enrollmentAction === 'reserve'
+                ? 'Enter your details to reserve the selected courses.'
+                : 'Enter your details to continue payment for selected courses.' }}
+            </p>
           </div>
           <button type="button" class="w-10 h-10 rounded-full hover:bg-gray-100 text-gray-500 cursor-pointer"
             @click="closeBillingModal">
@@ -603,7 +719,7 @@ onMounted(() => {
           </div>
 
           <div class="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-between">
-            <span class="text-sm text-gray-700">Total to pay</span>
+            <span class="text-sm text-gray-700">{{ enrollmentAction === 'reserve' ? 'Selected course total' : 'Total to pay' }}</span>
             <span class="text-xl font-bold text-blue-700">{{ formatPrice(total) }}</span>
           </div>
 
@@ -615,10 +731,16 @@ onMounted(() => {
             </button>
             <button type="button"
               class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-              :disabled="isSubmitting" @click="submitPayment">
+              :disabled="isSubmitting" @click="submitEnrollment">
               <i v-if="isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
               <i v-else class="fa-solid fa-lock"></i>
-              <span>{{ isSubmitting ? 'Processing...' : 'Confirm & Pay' }}</span>
+              <span>
+                {{
+                  isSubmitting
+                    ? enrollmentAction === 'reserve' ? 'Reserving...' : 'Processing...'
+                    : enrollmentAction === 'reserve' ? 'Reserve Seat' : 'Confirm & Pay'
+                }}
+              </span>
             </button>
           </div>
         </div>

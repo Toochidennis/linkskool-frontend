@@ -6,5 +6,5 @@ export interface Program {
   imageUrl: string | null;
   courseCount: number;
   sponsor: string | null;
-  shortname: string | null;
+  startDate: string| null;
 }

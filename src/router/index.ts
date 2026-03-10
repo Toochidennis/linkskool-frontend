@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import CourseDetailPage from '@/views/CourseDetailPage.vue'
+import FaqsPage from '@/views/FaqsPage.vue'
 import ProgramEnrollmentPage from '@/views/ProgramEnrollmentPage.vue'
 import ProgramPage from '@/views/ProgramPage.vue'
 import LandingPage from '@/views/LandingPage.vue'
 import NotFoundPage from '@/views/NotFoundPage.vue'
+import PaymentCompletionPage from '@/views/PaymentCompletionPage.vue'
 import PrivacyPolicyPage from '@/views/PrivacyPolicyPage.vue'
 
 const router = createRouter({
@@ -42,6 +44,16 @@ const router = createRouter({
       path: '/privacy-policy',
       name: 'privacy-policy',
       component: PrivacyPolicyPage,
+    },
+    {
+      path: '/faqs',
+      name: 'faqs',
+      component: FaqsPage,
+    },
+    {
+      path: '/payment/completion',
+      name: 'payment-completion',
+      component: PaymentCompletionPage,
     },
     {
       path: '/:pathMatch(.*)*',
