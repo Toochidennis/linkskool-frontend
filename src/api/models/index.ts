@@ -9,3 +9,4 @@ export * from './user';
 export * from './faqs';
 export * from './payment-payload';
 export * from './reserve-payload';
+export * from './payment-response';

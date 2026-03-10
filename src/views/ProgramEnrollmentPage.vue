@@ -4,8 +4,8 @@ import { useRoute } from 'vue-router'
 
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
-import type { Course, Program, TrialType } from '@/api/models'
-import { programService } from '@/api/services'
+import type { Course, PaymentPayload, Program, ReservePayload, TrialType } from '@/api/models'
+import { enrollmentService, programService } from '@/api/services'
 import { resolveAssetUrl } from '@/api/util/assetUrl'
 import { usePageMeta } from '@/composables/usePageMeta'
 
@@ -28,11 +28,17 @@ const courses = ref<Course[]>([])
 const isLoading = ref(false)
 const isSubmitting = ref(false)
 const showBillingModal = ref(false)
+const showReservationSuccessModal = ref(false)
 const enrollmentAction = ref<'pay' | 'reserve'>('pay')
 const loadError = ref('')
 const submitError = ref('')
 const successMessage = ref('')
+const lastPaymentReference = ref('')
+const lastPaymentUrl = ref('')
 const currentTime = ref(Date.now())
+const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
+const configuredPaymentCallbackUrl = (import.meta.env.VITE_PAYMENT_CALLBACK_URL as string | undefined)?.trim() ?? ''
+const PAYMENT_CALLBACK_URL = configuredPaymentCallbackUrl || `${window.location.origin}/payment/completion`
 
 const selectedCourseIds = ref<number[]>([])
 
@@ -90,6 +96,24 @@ const normalizedCourses = computed<CourseSelectionModel[]>(() =>
 const selectedCourses = computed(() =>
   normalizedCourses.value.filter((course) => selectedCourseIds.value.includes(course.courseId)),
 )
+
+const selectedEnrollmentItems = computed(() =>
+  selectedCourses.value
+    .filter((course) => Boolean(course.cohortId))
+    .map((course) => ({
+      courseId: course.courseId,
+      cohortId: course.cohortId as number,
+    })),
+)
+
+const hasWhatsappGroupUrl = computed(() => Boolean(configuredWhatsappGroupUrl))
+
+const whatsappJoinLink = computed(() => {
+  if (configuredWhatsappGroupUrl) {
+    return configuredWhatsappGroupUrl
+  }
+  return 'mailto:hello@linkskool.com?subject=WhatsApp%20Group%20Access&body=Hi%20LinkSkool%2C%20I%20just%20reserved%20my%20seat.%20Please%20add%20me%20to%20the%20WhatsApp%20group.'
+})
 
 const subtotal = computed(() =>
   selectedCourses.value.reduce((sum, course) => {
@@ -276,6 +300,10 @@ const closeBillingModal = () => {
   showBillingModal.value = false
 }
 
+const closeReservationSuccessModal = () => {
+  showReservationSuccessModal.value = false
+}
+
 const validateForm = () => {
   let valid = true
 
@@ -318,6 +346,8 @@ const validateForm = () => {
 const submitEnrollment = async () => {
   submitError.value = ''
   successMessage.value = ''
+  lastPaymentReference.value = ''
+  lastPaymentUrl.value = ''
 
   if (selectedCourses.value.length === 0) {
     submitError.value = 'Select at least one course to continue.'
@@ -329,34 +359,66 @@ const submitEnrollment = async () => {
     return
   }
 
-  const selectedCohorts = selectedCourses.value.filter((course) => course.cohortId)
-
-  if (selectedCohorts.length === 0) {
+  if (selectedEnrollmentItems.value.length === 0) {
     submitError.value = 'None of the selected courses has an active enrollment cohort.'
+    return
+  }
+
+  if (!program.value?.id) {
+    submitError.value = 'Program details are not ready yet. Please refresh and try again.'
     return
   }
 
   isSubmitting.value = true
 
   try {
-    await Promise.all(
-      selectedCohorts.map((course) =>
-        programService.enrollInCourse(course.cohortId as number, {
-          firstName: customerForm.firstName.trim(),
-          lastName: customerForm.lastName.trim(),
-          email: customerForm.email.trim(),
-          phoneNumber: customerForm.phoneNumber.trim(),
-          mode: enrollmentAction.value,
-        }),
-      ),
-    )
+    const basePayload = {
+      firstName: customerForm.firstName.trim(),
+      lastName: customerForm.lastName.trim(),
+      email: customerForm.email.trim(),
+      phone: customerForm.phoneNumber.trim(),
+      programId: program.value.id,
+      items: selectedEnrollmentItems.value,
+    }
 
-    successMessage.value = enrollmentAction.value === 'reserve'
-      ? 'Seats reserved for the selected courses.'
-      : 'Payment initiated and enrollment completed for selected courses.'
+    if (enrollmentAction.value === 'pay') {
+      const payload: PaymentPayload = {
+        ...basePayload,
+        callbackUrl: PAYMENT_CALLBACK_URL,
+      }
+
+      const paymentResponse = await enrollmentService.makePayment(payload)
+      const paymentUrl = typeof paymentResponse.paymentUrl === 'string'
+        ? paymentResponse.paymentUrl.trim()
+        : ''
+
+      if (!paymentUrl) {
+        submitError.value = 'Payment link was not returned. Please try again.'
+        return
+      }
+
+      lastPaymentReference.value = paymentResponse.reference || ''
+      lastPaymentUrl.value = paymentUrl
+      showBillingModal.value = false
+      successMessage.value = 'Payment initialized. Opening secure checkout...'
+
+      window.open(paymentUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    const payload: ReservePayload = basePayload
+    const isReserved = await enrollmentService.reserve(payload)
+
+    if (!isReserved) {
+      submitError.value = 'Reservation was not completed. Please try again.'
+      return
+    }
+
     showBillingModal.value = false
+    showReservationSuccessModal.value = true
+    successMessage.value = 'Your seat reservation is complete.'
   } catch (error) {
-    console.error('Failed to submit multi-course enrollment:', error)
+    console.error('Failed to submit enrollment request:', error)
     submitError.value = enrollmentAction.value === 'reserve'
       ? 'Reservation could not be completed right now. Please try again.'
       : 'Payment could not be completed right now. Please try again.'
@@ -596,7 +658,9 @@ onBeforeUnmount(() => {
                       <p class="mt-1 text-xs text-gray-600">
                         {{ programCountdown?.isStarted
                           ? 'Program is already in progress.'
-                          : `${countdownSegments[0]?.value ?? 0}d ${String(countdownSegments[1]?.value ?? 0).padStart(2, '0')}h ${String(countdownSegments[2]?.value ?? 0).padStart(2, '0')}m ${String(countdownSegments[3]?.value ?? 0).padStart(2, '0')}s left` }}
+                          : `${countdownSegments[0]?.value ?? 0}d ${String(countdownSegments[1]?.value ?? 0).padStart(2,
+                            '0')}h ${String(countdownSegments[2]?.value ?? 0).padStart(2, '0')}m
+                        ${String(countdownSegments[3]?.value ?? 0).padStart(2, '0')}s left` }}
                       </p>
                     </div>
                   </div>
@@ -635,6 +699,20 @@ onBeforeUnmount(() => {
               <div v-if="successMessage"
                 class="rounded-xl border border-green-200 bg-green-50 text-green-700 px-3 py-2 text-sm">
                 {{ successMessage }}
+              </div>
+
+              <div v-if="lastPaymentUrl"
+                class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-3 text-sm text-blue-800">
+                <p class="font-semibold">Checkout link ready</p>
+                <p class="mt-1 text-blue-700">If payment did not open automatically, continue with the button below.</p>
+                <div class="mt-2 flex flex-wrap items-center gap-3">
+                  <a :href="lastPaymentUrl" target="_blank" rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500">
+                    <i class="fa-solid fa-up-right-from-square"></i>
+                    <span>Open Payment</span>
+                  </a>
+                  <span v-if="lastPaymentReference" class="text-xs text-blue-700">Ref: {{ lastPaymentReference }}</span>
+                </div>
               </div>
 
               <button type="button"
@@ -719,7 +797,8 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-between">
-            <span class="text-sm text-gray-700">{{ enrollmentAction === 'reserve' ? 'Selected course total' : 'Total to pay' }}</span>
+            <span class="text-sm text-gray-700">{{ enrollmentAction === 'reserve' ? 'Selected course total' : 'Total to
+              pay' }}</span>
             <span class="text-xl font-bold text-blue-700">{{ formatPrice(total) }}</span>
           </div>
 
@@ -741,6 +820,63 @@ onBeforeUnmount(() => {
                     : enrollmentAction === 'reserve' ? 'Reserve Seat' : 'Confirm & Pay'
                 }}
               </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showReservationSuccessModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4"
+      @click.self="closeReservationSuccessModal">
+      <div class="max-w-xl mx-auto mt-12 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+        <div class="px-6 py-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-orange-500 text-white">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-100">Reservation Complete</p>
+              <h2 class="mt-2 text-2xl font-bold">Your seat has been reserved</h2>
+              <p class="mt-2 text-blue-100">Watch your inbox for next steps from the Linkskool team.</p>
+            </div>
+            <button type="button" class="w-10 h-10 rounded-full hover:bg-white/15 text-white cursor-pointer"
+              @click="closeReservationSuccessModal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+            <p class="text-sm text-blue-900">
+              Stay updated in our learner community for onboarding updates, reminders, and live support.
+            </p>
+            <a :href="whatsappJoinLink" target="_blank" rel="noopener noreferrer"
+              class="mt-3 inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-400">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>Join WhatsApp Group</span>
+            </a>
+            <p v-if="!hasWhatsappGroupUrl" class="mt-2 text-xs text-blue-700">
+              WhatsApp link is private for now. Use the button to request access.
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-orange-100 bg-orange-50 p-4">
+            <p class="text-sm text-orange-900">Need quick answers before your classes begin?</p>
+            <RouterLink to="/faqs"
+              class="mt-3 inline-flex items-center gap-2 rounded-lg border border-orange-200 bg-white px-4 py-2.5 text-sm font-semibold text-orange-700 hover:bg-orange-100">
+              <i class="fa-solid fa-circle-question"></i>
+              <span>Check FAQs</span>
+            </RouterLink>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-end gap-3 pt-1">
+            <RouterLink to="/#programs"
+              class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700">
+              <span>Explore More Programs</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </RouterLink>
+            <button type="button"
+              class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:shadow-lg"
+              @click="closeReservationSuccessModal">
+              <span>Done</span>
             </button>
           </div>
         </div>

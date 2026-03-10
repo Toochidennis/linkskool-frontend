@@ -136,6 +136,12 @@ onMounted(async () => {
             <span>Join WhatsApp Group</span>
           </a>
 
+          <RouterLink to="/faqs"
+            class="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-6 py-3 font-semibold text-white transition-colors duration-200 hover:bg-white/20">
+            <i class="fa-solid fa-circle-question"></i>
+            <span>Check FAQs</span>
+          </RouterLink>
+
           <RouterLink to="/#programs"
             class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-blue-700 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-xl">
             <span>{{ ctaLabel }}</span>
