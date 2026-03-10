@@ -4,6 +4,7 @@ import type { CourseDetail } from '@/api/models'
 
 defineProps<{
     courseDetail: CourseDetail
+    mode: 'pay' | 'reserve'
 }>()
 
 const emit = defineEmits<{
@@ -93,7 +94,8 @@ const handleSubmit = async () => {
 
 <template>
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div class="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-y-auto animate-scale-in">
+        <div
+            class="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-y-auto animate-scale-in">
             <!-- Header -->
             <div class="relative bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6 text-white">
                 <button @click="emit('close')"
@@ -201,7 +203,7 @@ const handleSubmit = async () => {
                             : 'hover:shadow-xl hover:scale-105'
                     ]">
                         <i v-if="isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
-                        <span v-else>Proceed to Payment</span>
+                        <span v-else>{{ mode === 'reserve' ? 'Reserve Seat' : 'Proceed to Payment' }}</span>
                     </button>
                 </div>
             </form>

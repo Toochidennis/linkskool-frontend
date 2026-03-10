@@ -797,8 +797,8 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-between">
-            <span class="text-sm text-gray-700">{{ enrollmentAction === 'reserve' ? 'Selected course total' : 'Total to
-              pay' }}</span>
+            <span class="text-sm text-gray-700">
+              {{ enrollmentAction === 'reserve' ? 'Selected course total' : 'Total to pay' }}</span>
             <span class="text-xl font-bold text-blue-700">{{ formatPrice(total) }}</span>
           </div>
 

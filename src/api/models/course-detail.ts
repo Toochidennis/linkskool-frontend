@@ -2,6 +2,7 @@ import type { TrialType } from "./cohort";
 import type { Program } from "./program";
 
 export interface CourseCohortDetail {
+  cohortId?: number;
   courseId: number;
   slug: string;
   title: string;
