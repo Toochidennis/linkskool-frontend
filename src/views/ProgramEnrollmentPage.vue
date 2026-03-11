@@ -8,6 +8,12 @@ import type { Course, PaymentPayload, Program, ReservePayload, TrialType } from 
 import { enrollmentService, programService } from '@/api/services'
 import { resolveAssetUrl } from '@/api/util/assetUrl'
 import { usePageMeta } from '@/composables/usePageMeta'
+import {
+  clearPendingPayment,
+  readPendingPayment,
+  savePendingPayment,
+  type PendingPayment,
+} from '@/utils/pendingPayment'
 
 type CourseSelectionModel = Course & {
   hasActiveCohort: boolean;
@@ -27,6 +33,7 @@ const program = ref<Program | null>(null)
 const courses = ref<Course[]>([])
 const isLoading = ref(false)
 const isSubmitting = ref(false)
+const isRedirectingToCheckout = ref(false)
 const showBillingModal = ref(false)
 const showReservationSuccessModal = ref(false)
 const enrollmentAction = ref<'pay' | 'reserve'>('pay')
@@ -35,6 +42,8 @@ const submitError = ref('')
 const successMessage = ref('')
 const lastPaymentReference = ref('')
 const lastPaymentUrl = ref('')
+const pendingPayment = ref<PendingPayment | null>(readPendingPayment())
+const isCheckingPendingPayment = ref(false)
 const currentTime = ref(Date.now())
 const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
 const configuredPaymentCallbackUrl = (import.meta.env.VITE_PAYMENT_CALLBACK_URL as string | undefined)?.trim() ?? ''
@@ -140,6 +149,7 @@ const selectedPaidCount = computed(() =>
 )
 
 const selectedFreeCount = computed(() => selectedCourses.value.length - selectedPaidCount.value)
+const hasPendingPayment = computed(() => Boolean(pendingPayment.value?.reference && pendingPayment.value?.paymentUrl))
 
 const nairaFormatter = new Intl.NumberFormat('en-NG', {
   style: 'currency',
@@ -283,9 +293,73 @@ const clearSelection = () => {
   selectedCourseIds.value = []
 }
 
+const syncPendingPaymentState = (value: PendingPayment | null) => {
+  pendingPayment.value = value
+  lastPaymentReference.value = value?.reference ?? ''
+  lastPaymentUrl.value = value?.paymentUrl ?? ''
+}
+
+const setPendingPaymentState = (value: PendingPayment) => {
+  savePendingPayment(value)
+  syncPendingPaymentState(value)
+}
+
+const clearPendingPaymentState = () => {
+  clearPendingPayment()
+  syncPendingPaymentState(null)
+}
+
+const resumePendingPayment = () => {
+  if (!pendingPayment.value?.paymentUrl) return
+  window.location.assign(pendingPayment.value.paymentUrl)
+}
+
+const discardPendingPayment = () => {
+  clearPendingPaymentState()
+  submitError.value = ''
+  successMessage.value = 'Previous checkout cleared. You can start a new payment now.'
+}
+
+const checkPendingPaymentStatus = async () => {
+  const reference = pendingPayment.value?.reference
+  if (!reference) return
+
+  isCheckingPendingPayment.value = true
+
+  try {
+    const isPaid = await enrollmentService.paymentStatus(reference)
+    clearPendingPaymentState()
+    submitError.value = ''
+    successMessage.value = isPaid
+      ? 'Your previous payment has been confirmed.'
+      : 'Previous checkout is no longer active. You can start a new payment.'
+  } catch (error) {
+    console.error('Failed to verify pending payment status:', error)
+  } finally {
+    isCheckingPendingPayment.value = false
+  }
+}
+
+const handleWindowFocus = () => {
+  if (hasPendingPayment.value && !isCheckingPendingPayment.value) {
+    checkPendingPaymentStatus()
+  }
+}
+
+const handleDocumentVisibility = () => {
+  if (document.visibilityState === 'visible') {
+    handleWindowFocus()
+  }
+}
+
 const openEnrollmentModal = (mode: 'pay' | 'reserve') => {
   submitError.value = ''
   successMessage.value = ''
+
+  if (hasPendingPayment.value) {
+    submitError.value = 'You already have a checkout in progress. Resume or clear it before starting another one.'
+    return
+  }
 
   if (selectedCourses.value.length === 0) {
     submitError.value = 'Select at least one course to continue.'
@@ -346,8 +420,11 @@ const validateForm = () => {
 const submitEnrollment = async () => {
   submitError.value = ''
   successMessage.value = ''
-  lastPaymentReference.value = ''
-  lastPaymentUrl.value = ''
+  isRedirectingToCheckout.value = false
+  if (!hasPendingPayment.value) {
+    lastPaymentReference.value = ''
+    lastPaymentUrl.value = ''
+  }
 
   if (selectedCourses.value.length === 0) {
     submitError.value = 'Select at least one course to continue.'
@@ -397,12 +474,19 @@ const submitEnrollment = async () => {
         return
       }
 
-      lastPaymentReference.value = paymentResponse.reference || ''
-      lastPaymentUrl.value = paymentUrl
-      showBillingModal.value = false
-      successMessage.value = 'Payment initialized. Opening secure checkout...'
+      const pendingCheckout = {
+        reference: paymentResponse.reference || '',
+        paymentUrl,
+        createdAt: Date.now(),
+      }
 
-      window.open(paymentUrl, '_blank', 'noopener,noreferrer')
+      setPendingPaymentState(pendingCheckout)
+      isRedirectingToCheckout.value = true
+      showBillingModal.value = false
+      successMessage.value = 'Payment initialized. Redirecting to secure checkout...'
+      window.setTimeout(() => {
+        window.location.assign(paymentUrl)
+      }, 150)
       return
     }
 
@@ -419,6 +503,7 @@ const submitEnrollment = async () => {
     successMessage.value = 'Your seat reservation is complete.'
   } catch (error) {
     console.error('Failed to submit enrollment request:', error)
+    isRedirectingToCheckout.value = false
     submitError.value = enrollmentAction.value === 'reserve'
       ? 'Reservation could not be completed right now. Please try again.'
       : 'Payment could not be completed right now. Please try again.'
@@ -453,22 +538,31 @@ const fetchProgramCourses = async () => {
     loadError.value = 'Unable to load enrollment page right now.'
   } finally {
     isLoading.value = false
+    if (hasPendingPayment.value && !isCheckingPendingPayment.value) {
+      checkPendingPaymentStatus()
+    }
   }
 }
 
 let countdownInterval: number | null = null
 
 onMounted(() => {
+  syncPendingPaymentState(readPendingPayment())
   countdownInterval = window.setInterval(() => {
     currentTime.value = Date.now()
   }, 1000)
+  window.addEventListener('focus', handleWindowFocus)
+  document.addEventListener('visibilitychange', handleDocumentVisibility)
   fetchProgramCourses()
+  checkPendingPaymentStatus()
 })
 
 onBeforeUnmount(() => {
   if (countdownInterval !== null) {
     window.clearInterval(countdownInterval)
   }
+  window.removeEventListener('focus', handleWindowFocus)
+  document.removeEventListener('visibilitychange', handleDocumentVisibility)
 })
 </script>
 
@@ -701,23 +795,49 @@ onBeforeUnmount(() => {
                 {{ successMessage }}
               </div>
 
-              <div v-if="lastPaymentUrl"
+              <div v-if="hasPendingPayment"
+                class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900">
+                <p class="font-semibold">Checkout in progress</p>
+                <p class="mt-1 text-amber-800">
+                  Finish the existing payment before starting another checkout for this enrollment.
+                </p>
+                <div class="mt-3 flex flex-wrap items-center gap-3">
+                  <button type="button"
+                    class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-500 cursor-pointer"
+                    @click="resumePendingPayment">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Resume Payment</span>
+                  </button>
+                  <button type="button"
+                    class="inline-flex items-center gap-2 rounded-lg border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100 cursor-pointer"
+                    @click="discardPendingPayment">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Start New Checkout</span>
+                  </button>
+                  <span v-if="lastPaymentReference" class="text-xs text-amber-800">Ref: {{ lastPaymentReference
+                    }}</span>
+                </div>
+              </div>
+
+              <div v-if="lastPaymentUrl && !hasPendingPayment"
                 class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-3 text-sm text-blue-800">
                 <p class="font-semibold">Checkout link ready</p>
-                <p class="mt-1 text-blue-700">If payment did not open automatically, continue with the button below.</p>
+                <p class="mt-1 text-blue-700">If you were interrupted, continue with the button below.</p>
                 <div class="mt-2 flex flex-wrap items-center gap-3">
-                  <a :href="lastPaymentUrl" target="_blank" rel="noopener noreferrer"
-                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500">
+                  <button type="button"
+                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500 cursor-pointer"
+                    @click="resumePendingPayment">
                     <i class="fa-solid fa-up-right-from-square"></i>
-                    <span>Open Payment</span>
-                  </a>
+                    <span>Resume Payment</span>
+                  </button>
                   <span v-if="lastPaymentReference" class="text-xs text-blue-700">Ref: {{ lastPaymentReference }}</span>
                 </div>
               </div>
 
               <button type="button"
                 class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                :disabled="isSubmitting" @click="openEnrollmentModal('pay')">
+                :disabled="isSubmitting || isCheckingPendingPayment || hasPendingPayment"
+                @click="openEnrollmentModal('pay')">
                 <i v-if="isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
                 <i v-else class="fa-solid fa-lock"></i>
                 <span>{{ isSubmitting && enrollmentAction === 'pay' ? 'Processing...' : 'Pay Now' }}</span>
@@ -725,7 +845,8 @@ onBeforeUnmount(() => {
 
               <button type="button"
                 class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-semibold hover:border-orange-400 hover:text-orange-600 hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                :disabled="isSubmitting" @click="openEnrollmentModal('reserve')">
+                :disabled="isSubmitting || isCheckingPendingPayment || hasPendingPayment"
+                @click="openEnrollmentModal('reserve')">
                 <i v-if="isSubmitting && enrollmentAction === 'reserve'" class="fa-solid fa-spinner fa-spin"></i>
                 <i v-else class="fa-solid fa-bookmark"></i>
                 <span>{{ isSubmitting && enrollmentAction === 'reserve' ? 'Processing...' : 'Reserve Seat' }}</span>
@@ -764,7 +885,7 @@ onBeforeUnmount(() => {
           <div class="grid sm:grid-cols-2 gap-4">
             <div>
               <label for="billingFirstName" class="block text-sm font-medium text-gray-700 mb-1.5">First Name</label>
-              <input id="billingFirstName" v-model="customerForm.firstName" type="text"
+              <input id="billingFirstName" v-model="customerForm.firstName" type="text" placeholder="e.g. John"
                 class="w-full rounded-xl border px-4 py-2.5 outline-none focus:ring-2 transition-colors"
                 :class="formErrors.firstName ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'" />
               <p v-if="formErrors.firstName" class="text-xs text-red-600 mt-1">{{ formErrors.firstName }}</p>
@@ -772,7 +893,7 @@ onBeforeUnmount(() => {
 
             <div>
               <label for="billingLastName" class="block text-sm font-medium text-gray-700 mb-1.5">Last Name</label>
-              <input id="billingLastName" v-model="customerForm.lastName" type="text"
+              <input id="billingLastName" v-model="customerForm.lastName" type="text" placeholder="e.g. Doe"
                 class="w-full rounded-xl border px-4 py-2.5 outline-none focus:ring-2 transition-colors"
                 :class="formErrors.lastName ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'" />
               <p v-if="formErrors.lastName" class="text-xs text-red-600 mt-1">{{ formErrors.lastName }}</p>
@@ -780,7 +901,7 @@ onBeforeUnmount(() => {
 
             <div>
               <label for="billingEmail" class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-              <input id="billingEmail" v-model="customerForm.email" type="email"
+              <input id="billingEmail" v-model="customerForm.email" type="email" placeholder="you@example.com"
                 class="w-full rounded-xl border px-4 py-2.5 outline-none focus:ring-2 transition-colors"
                 :class="formErrors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'" />
               <p v-if="formErrors.email" class="text-xs text-red-600 mt-1">{{ formErrors.email }}</p>
@@ -790,6 +911,7 @@ onBeforeUnmount(() => {
               <label for="billingPhoneNumber" class="block text-sm font-medium text-gray-700 mb-1.5">Phone
                 Number</label>
               <input id="billingPhoneNumber" v-model="customerForm.phoneNumber" type="tel"
+                placeholder="+234 801 234 5678"
                 class="w-full rounded-xl border px-4 py-2.5 outline-none focus:ring-2 transition-colors"
                 :class="formErrors.phoneNumber ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'" />
               <p v-if="formErrors.phoneNumber" class="text-xs text-red-600 mt-1">{{ formErrors.phoneNumber }}</p>
@@ -823,6 +945,19 @@ onBeforeUnmount(() => {
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="isRedirectingToCheckout"
+      class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-100 px-6 py-8 text-center">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+          <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900">Preparing your checkout</h3>
+        <p class="mt-2 text-sm text-gray-600">
+          Please wait while we redirect you to secure payment. Do not close this tab.
+        </p>
       </div>
     </div>
 

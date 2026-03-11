@@ -19,4 +19,12 @@ export const enrollmentService = {
     });
     return response.data;
   },
+
+  async paymentStatus(reference: string, signal?: AbortSignal) {
+    const response = await apiRequest<boolean>(`learning/cohorts/enrollments/checkout/${reference}/status`, {
+      method: "GET",
+      signal,
+    });
+    return response.data;
+  }
 };

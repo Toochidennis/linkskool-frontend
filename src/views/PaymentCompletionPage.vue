@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import ProgramCard from '@/components/ProgramCard.vue'
 import type { Program } from '@/api/models'
-import { programService } from '@/api/services'
+import { enrollmentService, programService } from '@/api/services'
 import { usePageMeta } from '@/composables/usePageMeta'
+import { clearPendingPayment } from '@/utils/pendingPayment'
 
 const route = useRoute()
 
 const programs = ref<Program[]>([])
 const isLoadingPrograms = ref(false)
+const isVerifyingPayment = ref(false)
+const verificationError = ref('')
 const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
+const verificationState = ref<'idle' | 'loading' | 'success' | 'failed' | 'missing' | 'error'>('idle')
 
-const paymentStatus = computed(() => {
+const callbackStatus = computed(() => {
   const raw = route.query.status
   if (Array.isArray(raw)) {
     return (raw[0] ?? '').toLowerCase()
@@ -31,32 +35,62 @@ const paymentReference = computed(() => {
   return raw ?? ''
 })
 
-const isSuccessful = computed(() => paymentStatus.value === 'success')
+//const isSuccessful = computed(() => verificationState.value === 'success')
 
 const statusBadgeLabel = computed(() => {
-  if (isSuccessful.value) {
+  if (verificationState.value === 'loading') {
+    return 'Verifying Payment'
+  }
+  if (verificationState.value === 'success') {
     return 'Payment Received'
   }
-  return 'Payment Update Received'
+  if (verificationState.value === 'failed') {
+    return 'Payment Not Completed'
+  }
+  if (verificationState.value === 'missing') {
+    return 'Reference Missing'
+  }
+  return 'Verification Needed'
 })
 
 const heroTitle = computed(() => {
-  if (isSuccessful.value) {
+  if (verificationState.value === 'loading') {
+    return 'Verifying your payment'
+  }
+  if (verificationState.value === 'success') {
     return 'Thank you for your payment'
   }
-  return 'Enrollment request received'
+  if (verificationState.value === 'failed') {
+    return 'Payment was not completed'
+  }
+  if (verificationState.value === 'missing') {
+    return 'Payment reference missing'
+  }
+  return 'We could not verify this payment yet'
 })
 
 const heroBody = computed(() => {
-  if (isSuccessful.value) {
+  if (verificationState.value === 'loading') {
+    return 'Please wait while we confirm your transaction with the server.'
+  }
+  if (verificationState.value === 'success') {
     return 'Your payment was successful and your enrollment is being finalized. You can keep building momentum by enrolling in another learning path below.'
   }
-  return 'We have received your payment update. If your enrollment is still processing, our team will complete the confirmation shortly.'
+  if (verificationState.value === 'failed') {
+    return 'This transaction was not confirmed as successful. You can return to enrollment and restart payment if needed.'
+  }
+  if (verificationState.value === 'missing') {
+    return 'The callback did not include a payment reference, so we could not verify this transaction.'
+  }
+  return verificationError.value || 'We could not confirm this payment right now. Please try again shortly or contact support with your reference.'
 })
 
 const ctaLabel = computed(() => {
-  if (isSuccessful.value) {
+  if (verificationState.value === 'success') {
     return 'Explore more programs'
+  }
+  if (verificationState.value === 'failed') {
+    return 'Try enrollment again'
   }
   return 'Browse programs'
 })
@@ -73,17 +107,51 @@ const whatsappJoinLink = computed(() => {
 const featuredPrograms = computed(() => programs.value.slice(0, 6))
 
 usePageMeta(() => ({
-  title: isSuccessful.value
+  title: verificationState.value === 'success'
     ? 'Payment Complete | Linkskool'
-    : 'Payment Update | Linkskool',
-  description: isSuccessful.value
+    : verificationState.value === 'loading'
+      ? 'Verifying Payment | Linkskool'
+      : 'Payment Verification | Linkskool',
+  description: verificationState.value === 'success'
     ? 'Your Linkskool payment was successful. Discover more programs and continue your learning journey.'
-    : 'Your Linkskool payment update has been received. Explore additional programs while your enrollment is being confirmed.',
+    : 'Verify your Linkskool payment status and continue your enrollment flow.',
   keywords: 'payment completion, paystack callback, program enrollment, linkskool',
   url: 'https://linkskool.com/payment/completion',
   image: 'https://linkskool.com/assets/og-image.png',
   type: 'website',
 }))
+
+const verifyPayment = async () => {
+  const reference = paymentReference.value.trim()
+
+  verificationError.value = ''
+
+  if (!reference) {
+    if (callbackStatus.value === 'success' || callbackStatus.value === 'failed' || callbackStatus.value === 'abandoned') {
+      clearPendingPayment()
+    }
+    verificationState.value = 'missing'
+    return
+  }
+
+  verificationState.value = 'loading'
+  isVerifyingPayment.value = true
+
+  try {
+    const isPaid = await enrollmentService.paymentStatus(reference)
+    verificationState.value = isPaid ? 'success' : 'failed'
+    clearPendingPayment()
+  } catch (error) {
+    console.error('Failed to verify payment status:', error)
+    if (callbackStatus.value === 'success') {
+      clearPendingPayment()
+    }
+    verificationState.value = 'error'
+    verificationError.value = 'Payment verification failed. Please try again shortly.'
+  } finally {
+    isVerifyingPayment.value = false
+  }
+}
 
 onMounted(async () => {
   isLoadingPrograms.value = true
@@ -96,6 +164,10 @@ onMounted(async () => {
     isLoadingPrograms.value = false
   }
 })
+
+watch(paymentReference, () => {
+  verifyPayment()
+}, { immediate: true })
 </script>
 
 <template>
@@ -121,6 +193,12 @@ onMounted(async () => {
         <p class="mt-5 max-w-3xl text-lg leading-relaxed text-blue-100">
           {{ heroBody }}
         </p>
+
+        <div v-if="isVerifyingPayment"
+          class="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 py-2 text-sm text-white">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <span>Confirming transaction status...</span>
+        </div>
 
         <div
           class="mt-6 max-w-3xl rounded-xl border border-white/20 bg-white/10 px-4 py-4 text-blue-100 backdrop-blur-sm">
