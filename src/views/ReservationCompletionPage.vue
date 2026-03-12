@@ -151,6 +151,12 @@ const parsedAdditionalOnboardingSteps = computed(() =>
 const programVideoEmbedUrl = computed(() => toEmbeddableVideoUrl(selectedProgram.value?.videoUrl ?? null))
 const hasVideoStep = computed(() => Boolean(selectedProgram.value?.videoUrl && programVideoEmbedUrl.value))
 const remainingStepsStartNumber = computed(() => (hasVideoStep.value ? 4 : 3))
+const programVideoPreviewUrl = computed(() => {
+  const embed = programVideoEmbedUrl.value
+  if (!embed) return null
+  const match = embed.match(/\/embed\/([^/?]+)/)
+  return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null
+})
 const faqStepNumber = computed(() => remainingStepsStartNumber.value + parsedAdditionalOnboardingSteps.value.length)
 
 const openVideoModal = () => {
@@ -306,21 +312,36 @@ onMounted(async () => {
             </div>
           </article>
 
-          <article v-if="hasVideoStep" class="rounded-2xl border border-orange-100 bg-orange-50/60 p-5 md:p-6">
-            <div class="flex items-start gap-4">
-              <div
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-600 text-sm font-bold text-white">
-                3
-              </div>
-              <div class="flex-1">
-                <h3 class="text-xl font-bold text-gray-900">Watch onboarding video</h3>
-                <p class="mt-1 text-gray-600">Get a quick walkthrough before your first class.</p>
+          <article v-if="hasVideoStep" class="overflow-hidden rounded-2xl border border-orange-100 bg-orange-50/60">
+            <div class="flex min-h-[200px] flex-col md:flex-row">
+              <div class="flex flex-1 flex-col justify-between gap-4 p-5 md:p-6">
+                <div class="flex items-start gap-4">
+                  <div
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-600 text-sm font-bold text-white">
+                    3
+                  </div>
+                  <div>
+                    <h3 class="text-xl font-bold text-gray-900">Watch onboarding video</h3>
+                    <p class="mt-1 text-gray-600">Get a quick walkthrough before your first class.</p>
+                  </div>
+                </div>
                 <button type="button" @click="openVideoModal"
-                  class="mt-4 inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-orange-700">
+                  class="inline-flex w-fit items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-orange-700">
                   <i class="fa-solid fa-circle-play"></i>
                   <span>Watch onboarding video</span>
                 </button>
               </div>
+              <button type="button" @click="openVideoModal" class="group relative shrink-0 md:w-80">
+                <img v-if="programVideoPreviewUrl" :src="programVideoPreviewUrl" alt="Video preview"
+                  class="h-full w-full object-cover" />
+                <div v-else
+                  class="flex h-full min-h-[160px] w-full items-center justify-center bg-orange-100 text-orange-300">
+                  <i class="fa-solid fa-circle-play text-5xl"></i>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors group-hover:bg-black/40">
+                  <i class="fa-solid fa-circle-play text-5xl text-white drop-shadow"></i>
+                </div>
+              </button>
             </div>
           </article>
 
