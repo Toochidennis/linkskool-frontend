@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
@@ -10,6 +10,12 @@ import type { CourseDetail, PaymentPayload, ReservePayload } from '@/api/models'
 import { enrollmentService, programService } from '@/api/services'
 import { resolveAssetUrl } from '@/api/util/assetUrl'
 import { usePageMeta } from '@/composables/usePageMeta'
+import {
+  clearPendingPayment,
+  readPendingPayment,
+  savePendingPayment,
+  type PendingPayment,
+} from '@/utils/pendingPayment'
 
 interface EnrollmentFormData {
   firstName: string
@@ -19,6 +25,7 @@ interface EnrollmentFormData {
 }
 
 const route = useRoute()
+const router = useRouter()
 
 const courseDetail = ref<CourseDetail | null>(null)
 const isLoading = ref(false)
@@ -27,14 +34,33 @@ const showEnrollmentForm = ref(false)
 const enrollmentAction = ref<'pay' | 'reserve'>('pay')
 const submitError = ref('')
 const successMessage = ref('')
+const isSubmitting = ref(false)
 const lastPaymentUrl = ref('')
 const lastPaymentReference = ref('')
-const showReservationSuccessModal = ref(false)
+const pendingPayment = ref<PendingPayment | null>(readPendingPayment())
+const isCheckingPendingPayment = ref(false)
 const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
 const configuredPaymentCallbackUrl = (import.meta.env.VITE_PAYMENT_CALLBACK_URL as string | undefined)?.trim() ?? ''
 const PAYMENT_CALLBACK_URL = configuredPaymentCallbackUrl || `${window.location.origin}/payment/completion`
 
+const buildPaymentCallbackUrl = (programSlug?: string | null) => {
+  const raw = PAYMENT_CALLBACK_URL.trim()
+  if (!raw) return `${window.location.origin}/payment/completion`
+
+  try {
+    const callbackUrl = new URL(raw)
+    if (programSlug) {
+      callbackUrl.searchParams.set('program', programSlug)
+    }
+    return callbackUrl.toString()
+  } catch {
+    const separator = raw.includes('?') ? '&' : '?'
+    return programSlug ? `${raw}${separator}program=${encodeURIComponent(programSlug)}` : raw
+  }
+}
+
 const hasWhatsappGroupUrl = computed(() => Boolean(configuredWhatsappGroupUrl))
+const hasPendingPayment = computed(() => Boolean(pendingPayment.value?.reference && pendingPayment.value?.paymentUrl))
 
 const whatsappJoinLink = computed(() => {
   if (configuredWhatsappGroupUrl) {
@@ -42,6 +68,65 @@ const whatsappJoinLink = computed(() => {
   }
   return 'mailto:hello@linkskool.com?subject=WhatsApp%20Group%20Access&body=Hi%20LinkSkool%2C%20I%20just%20reserved%20my%20seat.%20Please%20add%20me%20to%20the%20WhatsApp%20group.'
 })
+
+const syncPendingPaymentState = (value: PendingPayment | null) => {
+  pendingPayment.value = value
+  lastPaymentReference.value = value?.reference ?? ''
+  lastPaymentUrl.value = value?.paymentUrl ?? ''
+}
+
+const setPendingPaymentState = (value: PendingPayment) => {
+  savePendingPayment(value)
+  syncPendingPaymentState(value)
+}
+
+const clearPendingPaymentState = () => {
+  clearPendingPayment()
+  syncPendingPaymentState(null)
+}
+
+const checkPendingPaymentStatus = async () => {
+  const reference = pendingPayment.value?.reference
+  if (!reference) return
+
+  isCheckingPendingPayment.value = true
+
+  try {
+    const isPaid = await enrollmentService.paymentStatus(reference)
+    clearPendingPaymentState()
+    submitError.value = ''
+    successMessage.value = isPaid
+      ? 'Your previous payment has been confirmed.'
+      : 'Previous checkout is no longer active. You can start a new payment.'
+  } catch (error) {
+    console.error('Failed to verify pending payment status:', error)
+  } finally {
+    isCheckingPendingPayment.value = false
+  }
+}
+
+const resumePendingPayment = () => {
+  if (!pendingPayment.value?.paymentUrl) return
+  window.location.assign(pendingPayment.value.paymentUrl)
+}
+
+const discardPendingPayment = () => {
+  clearPendingPaymentState()
+  submitError.value = ''
+  successMessage.value = 'Previous checkout cleared. You can start a new payment now.'
+}
+
+const handleWindowFocus = () => {
+  if (hasPendingPayment.value && !isCheckingPendingPayment.value) {
+    checkPendingPaymentStatus()
+  }
+}
+
+const handleDocumentVisibility = () => {
+  if (document.visibilityState === 'visible') {
+    handleWindowFocus()
+  }
+}
 
 // Dynamic meta tags based on course data
 usePageMeta(() => ({
@@ -163,10 +248,18 @@ const isEnrollmentClosed = computed(() => {
 
 const handleEnroll = () => {
   if (isEnrollmentClosed.value) return
+
+  if (hasPendingPayment.value) {
+    submitError.value = 'You already have a checkout in progress. Resume or clear it before starting another one.'
+    return
+  }
+
   submitError.value = ''
   successMessage.value = ''
-  lastPaymentUrl.value = ''
-  lastPaymentReference.value = ''
+  if (!hasPendingPayment.value) {
+    lastPaymentUrl.value = ''
+    lastPaymentReference.value = ''
+  }
   enrollmentAction.value = 'pay'
   showEnrollmentForm.value = true
 }
@@ -179,15 +272,20 @@ const handleReserve = () => {
   showEnrollmentForm.value = true
 }
 
-const closeReservationSuccessModal = () => {
-  showReservationSuccessModal.value = false
+const closeEnrollmentForm = () => {
+  showEnrollmentForm.value = false
+  submitError.value = ''
 }
 
 const handleFormSubmit = async (formData: EnrollmentFormData) => {
+  if (isSubmitting.value) return
+
   submitError.value = ''
   successMessage.value = ''
-  lastPaymentUrl.value = ''
-  lastPaymentReference.value = ''
+  if (!hasPendingPayment.value) {
+    lastPaymentUrl.value = ''
+    lastPaymentReference.value = ''
+  }
 
   if (!courseDetail.value) {
     submitError.value = 'Course details are unavailable right now.'
@@ -215,28 +313,48 @@ const handleFormSubmit = async (formData: EnrollmentFormData) => {
     ],
   }
 
+  isSubmitting.value = true
+
   try {
     if (enrollmentAction.value === 'pay') {
       const payload: PaymentPayload = {
         ...basePayload,
-        callbackUrl: PAYMENT_CALLBACK_URL,
+        callbackUrl: buildPaymentCallbackUrl(courseDetail.value.program.slug),
       }
 
       const paymentResponse = await enrollmentService.makePayment(payload)
+      const paymentStatus = paymentResponse.status
+      const paymentMessage = typeof paymentResponse.message === 'string'
+        ? paymentResponse.message.trim()
+        : ''
+
+      if (paymentStatus === 'blocked') {
+        clearPendingPaymentState()
+        submitError.value = paymentMessage || 'Payment is currently blocked. Please contact support.'
+        return
+      }
+
       const paymentUrl = typeof paymentResponse.paymentUrl === 'string'
         ? paymentResponse.paymentUrl.trim()
         : ''
 
       if (!paymentUrl) {
-        submitError.value = 'Payment link was not returned. Please try again.'
+        submitError.value = paymentMessage || 'Payment link was not returned. Please try again.'
         return
       }
 
+      const pendingCheckout = {
+        reference: paymentResponse.reference || '',
+        paymentUrl,
+        createdAt: Date.now(),
+      }
+
+      setPendingPaymentState(pendingCheckout)
       showEnrollmentForm.value = false
-      lastPaymentUrl.value = paymentUrl
-      lastPaymentReference.value = paymentResponse.reference || ''
       successMessage.value = 'Payment initialized. Opening secure checkout...'
-      window.open(paymentUrl, '_blank', 'noopener,noreferrer')
+      window.setTimeout(() => {
+        window.location.assign(paymentUrl)
+      }, 150)
       return
     }
 
@@ -249,13 +367,20 @@ const handleFormSubmit = async (formData: EnrollmentFormData) => {
     }
 
     showEnrollmentForm.value = false
-    showReservationSuccessModal.value = true
     successMessage.value = 'Your seat reservation is complete.'
+    await router.push({
+      name: 'reservation-completion',
+      query: {
+        program: courseDetail.value.program.slug,
+      },
+    })
   } catch (error) {
     console.error('Failed to submit enrollment request:', error)
     submitError.value = enrollmentAction.value === 'reserve'
       ? 'Reservation could not be completed right now. Please try again.'
       : 'Payment could not be completed right now. Please try again.'
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -281,7 +406,19 @@ const fetchCourseDetail = async () => {
   }
 }
 
-onMounted(fetchCourseDetail)
+onMounted(() => {
+  syncPendingPaymentState(readPendingPayment())
+  window.addEventListener('focus', handleWindowFocus)
+  document.addEventListener('visibilitychange', handleDocumentVisibility)
+  fetchCourseDetail()
+  checkPendingPaymentStatus()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('focus', handleWindowFocus)
+  document.removeEventListener('visibilitychange', handleDocumentVisibility)
+})
+
 watch(detailRef, () => {
   fetchCourseDetail()
 })
@@ -337,12 +474,30 @@ watch(detailRef, () => {
               <p class="font-semibold">Checkout link ready</p>
               <p class="mt-1 text-blue-700">If payment did not open automatically, continue with the button below.</p>
               <div class="mt-2 flex flex-wrap items-center gap-3">
-                <a :href="lastPaymentUrl" target="_blank" rel="noopener noreferrer"
+                <button type="button" @click="resumePendingPayment"
                   class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500">
                   <i class="fa-solid fa-up-right-from-square"></i>
-                  <span>Open Payment</span>
-                </a>
+                  <span>Resume Payment</span>
+                </button>
                 <span v-if="lastPaymentReference" class="text-xs text-blue-700">Ref: {{ lastPaymentReference }}</span>
+              </div>
+            </div>
+
+            <div v-if="hasPendingPayment"
+              class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p class="font-semibold">Checkout in progress</p>
+              <p class="mt-1 text-amber-800">Finish the existing payment before starting another checkout.</p>
+              <div class="mt-2 flex flex-wrap items-center gap-3">
+                <button type="button" @click="resumePendingPayment"
+                  class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-500">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                  <span>Resume Payment</span>
+                </button>
+                <button type="button" @click="discardPendingPayment"
+                  class="inline-flex items-center gap-2 rounded-lg border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100">
+                  <i class="fa-solid fa-rotate-left"></i>
+                  <span>Start New Checkout</span>
+                </button>
               </div>
             </div>
 
@@ -425,64 +580,7 @@ watch(detailRef, () => {
     </div>
 
     <EnrollmentForm v-if="showEnrollmentForm && courseDetail" :course-detail="courseDetail" :mode="enrollmentAction"
-      @close="showEnrollmentForm = false" @submit="handleFormSubmit" />
-
-    <div v-if="showReservationSuccessModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4"
-      @click.self="closeReservationSuccessModal">
-      <div class="max-w-xl mx-auto mt-12 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-        <div class="px-6 py-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-orange-500 text-white">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-100">Reservation Complete</p>
-              <h2 class="mt-2 text-2xl font-bold">Your seat has been reserved</h2>
-              <p class="mt-2 text-blue-100">Watch your inbox for next steps from the Linkskool team.</p>
-            </div>
-            <button type="button" class="w-10 h-10 rounded-full hover:bg-white/15 text-white cursor-pointer"
-              @click="closeReservationSuccessModal">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="p-6 space-y-4">
-          <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
-            <p class="text-sm text-blue-900">
-              Stay updated in our learner community for onboarding updates, reminders, and live support.
-            </p>
-            <a :href="whatsappJoinLink" target="_blank" rel="noopener noreferrer"
-              class="mt-3 inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-400">
-              <i class="fa-brands fa-whatsapp"></i>
-              <span>Join WhatsApp Group</span>
-            </a>
-            <p v-if="!hasWhatsappGroupUrl" class="mt-2 text-xs text-blue-700">
-              WhatsApp link is private for now. Use the button to request access.
-            </p>
-          </div>
-
-          <div class="rounded-xl border border-orange-100 bg-orange-50 p-4">
-            <p class="text-sm text-orange-900">Need quick answers before your classes begin?</p>
-            <RouterLink to="/faqs"
-              class="mt-3 inline-flex items-center gap-2 rounded-lg border border-orange-200 bg-white px-4 py-2.5 text-sm font-semibold text-orange-700 hover:bg-orange-100">
-              <i class="fa-solid fa-circle-question"></i>
-              <span>Check FAQs</span>
-            </RouterLink>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-end gap-3 pt-1">
-            <RouterLink to="/#programs"
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700">
-              <span>Explore More Programs</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </RouterLink>
-            <button type="button"
-              class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:shadow-lg"
-              @click="closeReservationSuccessModal">
-              <span>Done</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      :submit-error="submitError" :is-submitting="isSubmitting" @close="closeEnrollmentForm" @submit="handleFormSubmit" />
 
     <AppFooter />
   </div>

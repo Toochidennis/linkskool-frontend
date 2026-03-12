@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
@@ -28,6 +28,7 @@ type CourseSelectionModel = Course & {
 }
 
 const route = useRoute()
+const router = useRouter()
 
 const program = ref<Program | null>(null)
 const courses = ref<Course[]>([])
@@ -48,6 +49,22 @@ const currentTime = ref(Date.now())
 const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
 const configuredPaymentCallbackUrl = (import.meta.env.VITE_PAYMENT_CALLBACK_URL as string | undefined)?.trim() ?? ''
 const PAYMENT_CALLBACK_URL = configuredPaymentCallbackUrl || `${window.location.origin}/payment/completion`
+
+const buildPaymentCallbackUrl = (programSlug?: string | null) => {
+  const raw = PAYMENT_CALLBACK_URL.trim()
+  if (!raw) return `${window.location.origin}/payment/completion`
+
+  try {
+    const callbackUrl = new URL(raw)
+    if (programSlug) {
+      callbackUrl.searchParams.set('program', programSlug)
+    }
+    return callbackUrl.toString()
+  } catch {
+    const separator = raw.includes('?') ? '&' : '?'
+    return programSlug ? `${raw}${separator}program=${encodeURIComponent(programSlug)}` : raw
+  }
+}
 
 const selectedCourseIds = ref<number[]>([])
 
@@ -461,16 +478,28 @@ const submitEnrollment = async () => {
     if (enrollmentAction.value === 'pay') {
       const payload: PaymentPayload = {
         ...basePayload,
-        callbackUrl: PAYMENT_CALLBACK_URL,
+        callbackUrl: buildPaymentCallbackUrl(program.value?.slug),
       }
 
       const paymentResponse = await enrollmentService.makePayment(payload)
+      const paymentStatus = paymentResponse.status
+      const paymentMessage = typeof paymentResponse.message === 'string'
+        ? paymentResponse.message.trim()
+        : ''
+
+      if (paymentStatus === 'blocked') {
+        clearPendingPaymentState()
+        isRedirectingToCheckout.value = false
+        submitError.value = paymentMessage || 'Payment is currently blocked. Please contact support.'
+        return
+      }
+
       const paymentUrl = typeof paymentResponse.paymentUrl === 'string'
         ? paymentResponse.paymentUrl.trim()
         : ''
 
       if (!paymentUrl) {
-        submitError.value = 'Payment link was not returned. Please try again.'
+        submitError.value = paymentMessage || 'Payment link was not returned. Please try again.'
         return
       }
 
@@ -499,8 +528,13 @@ const submitEnrollment = async () => {
     }
 
     showBillingModal.value = false
-    showReservationSuccessModal.value = true
     successMessage.value = 'Your seat reservation is complete.'
+    await router.push({
+      name: 'reservation-completion',
+      query: {
+        program: program.value?.slug ?? '',
+      },
+    })
   } catch (error) {
     console.error('Failed to submit enrollment request:', error)
     isRedirectingToCheckout.value = false
@@ -882,6 +916,10 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="p-6">
+          <div v-if="submitError" class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ submitError }}
+          </div>
+
           <div class="grid sm:grid-cols-2 gap-4">
             <div>
               <label for="billingFirstName" class="block text-sm font-medium text-gray-700 mb-1.5">First Name</label>

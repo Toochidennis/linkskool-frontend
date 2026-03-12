@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 import type { CourseDetail } from '@/api/models'
 
-defineProps<{
+const props = defineProps<{
     courseDetail: CourseDetail
     mode: 'pay' | 'reserve'
+    submitError?: string
+    isSubmitting?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -32,8 +34,6 @@ const errors = reactive({
     email: '',
     phone: ''
 })
-
-const isSubmitting = ref(false)
 
 const validateForm = (): boolean => {
     let isValid = true
@@ -81,14 +81,7 @@ const validateForm = (): boolean => {
 
 const handleSubmit = async () => {
     if (!validateForm()) return
-
-    isSubmitting.value = true
-
-    // Simulate API call
-    setTimeout(() => {
-        emit('submit', { ...formData })
-        isSubmitting.value = false
-    }, 1000)
+    emit('submit', { ...formData })
 }
 </script>
 
@@ -111,6 +104,10 @@ const handleSubmit = async () => {
             <!-- Form -->
             <form @submit.prevent="handleSubmit" class="p-8 pb-12">
                 <div class="space-y-6">
+                    <div v-if="props.submitError" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {{ props.submitError }}
+                    </div>
+
                     <!-- Name Row -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- First Name -->
@@ -196,13 +193,13 @@ const handleSubmit = async () => {
                         class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors cursor-pointer">
                         Cancel
                     </button>
-                    <button type="submit" :disabled="isSubmitting" :class="[
+                    <button type="submit" :disabled="props.isSubmitting" :class="[
                         'flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer',
-                        isSubmitting
+                        props.isSubmitting
                             ? 'opacity-50 cursor-not-allowed'
                             : 'hover:shadow-xl hover:scale-105'
                     ]">
-                        <i v-if="isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
+                        <i v-if="props.isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
                         <span v-else>{{ mode === 'reserve' ? 'Reserve Seat' : 'Proceed to Payment' }}</span>
                     </button>
                 </div>

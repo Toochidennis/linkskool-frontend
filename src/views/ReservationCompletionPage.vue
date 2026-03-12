@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
-import ProgramCard from '@/components/ProgramCard.vue'
 import type { Program } from '@/api/models'
-import { enrollmentService, programService } from '@/api/services'
+import { programService } from '@/api/services'
 import { usePageMeta } from '@/composables/usePageMeta'
-import { clearPendingPayment } from '@/utils/pendingPayment'
 import logoSrc from '@/assets/logo.png'
 
 interface StepSegment {
@@ -21,36 +19,11 @@ const route = useRoute()
 
 const programs = ref<Program[]>([])
 const isLoadingPrograms = ref(false)
-const isVerifyingPayment = ref(false)
-const verificationError = ref('')
-const showVideoModal = ref(false)
 const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
 const androidAppUrl = (import.meta.env.VITE_LINKSKOOL_ANDROID_APP_URL as string | undefined)?.trim() ?? ''
 const iosAppUrl = (import.meta.env.VITE_LINKSKOOL_IOS_APP_URL as string | undefined)?.trim() ?? ''
 const desktopAppUrl = (import.meta.env.VITE_LINKSKOOL_DESKTOP_APP_URL as string | undefined)?.trim() ?? ''
-const verificationState = ref<'idle' | 'loading' | 'success' | 'failed' | 'missing' | 'error'>('idle')
-
-const callbackStatus = computed(() => {
-  const raw = route.query.status
-  if (Array.isArray(raw)) {
-    return (raw[0] ?? '').toLowerCase()
-  }
-  return (raw ?? '').toLowerCase()
-})
-
-const paymentReference = computed(() => {
-  const raw = route.query.reference ?? route.query.trxref
-  if (Array.isArray(raw)) {
-    return raw[0] ?? ''
-  }
-  return raw ?? ''
-})
-
-const hasPaymentCallbackContext = computed(() => {
-  if (paymentReference.value.trim()) return true
-  if (callbackStatus.value.trim()) return true
-  return Object.keys(route.query).length > 0
-})
+const showVideoModal = ref(false)
 
 const callbackProgramSlug = computed(() => {
   const raw = route.query.program
@@ -68,6 +41,14 @@ const selectedProgram = computed(() => {
 
 const hasAndroidAppUrl = computed(() => Boolean(androidAppUrl))
 const hasDesktopAppUrl = computed(() => Boolean(desktopAppUrl))
+const hasWhatsappGroupUrl = computed(() => Boolean(configuredWhatsappGroupUrl))
+
+const whatsappJoinLink = computed(() => {
+  if (configuredWhatsappGroupUrl) {
+    return configuredWhatsappGroupUrl
+  }
+  return 'mailto:hello@linkskool.com?subject=WhatsApp%20Group%20Access&body=Hi%20LinkSkool%2C%20I%20just%20reserved%20my%20seat.%20Please%20add%20me%20to%20the%20WhatsApp%20group.'
+})
 
 const normalizeUrl = (rawUrl: string) => {
   const cleaned = rawUrl.trim()
@@ -164,80 +145,6 @@ const hasVideoStep = computed(() => Boolean(selectedProgram.value?.videoUrl && p
 const remainingStepsStartNumber = computed(() => (hasVideoStep.value ? 4 : 3))
 const faqStepNumber = computed(() => remainingStepsStartNumber.value + parsedAdditionalOnboardingSteps.value.length)
 
-//const isSuccessful = computed(() => verificationState.value === 'success')
-
-const statusBadgeLabel = computed(() => {
-  if (verificationState.value === 'loading') {
-    return 'Verifying Payment'
-  }
-  if (verificationState.value === 'success') {
-    return 'Payment Received'
-  }
-  if (verificationState.value === 'failed') {
-    return 'Payment Not Completed'
-  }
-  if (verificationState.value === 'missing') {
-    return 'Reference Missing'
-  }
-  return 'Verification Needed'
-})
-
-const heroTitle = computed(() => {
-  if (verificationState.value === 'loading') {
-    return 'Verifying your payment'
-  }
-  if (verificationState.value === 'success') {
-    return 'Thank you for your payment'
-  }
-  if (verificationState.value === 'failed') {
-    return 'Payment was not completed'
-  }
-  if (verificationState.value === 'missing') {
-    return 'Payment reference missing'
-  }
-  return 'We could not verify this payment yet'
-})
-
-const heroBody = computed(() => {
-  if (verificationState.value === 'loading') {
-    return 'Please wait while we confirm your transaction with the server.'
-  }
-  if (verificationState.value === 'success') {
-    if (selectedProgram.value?.name) {
-      return `Your payment was successful for ${selectedProgram.value.name}. Follow the onboarding steps below to get started immediately.`
-    }
-    return 'Your payment was successful. Follow the onboarding steps below to get started immediately.'
-  }
-  if (verificationState.value === 'failed') {
-    return 'This transaction was not confirmed as successful. You can return to enrollment and restart payment if needed.'
-  }
-  if (verificationState.value === 'missing') {
-    return 'The callback did not include a payment reference, so we could not verify this transaction.'
-  }
-  return verificationError.value || 'We could not confirm this payment right now. Please try again shortly or contact support with your reference.'
-})
-
-const ctaLabel = computed(() => {
-  if (verificationState.value === 'success') {
-    return 'Explore more programs'
-  }
-  if (verificationState.value === 'failed') {
-    return 'Try enrollment again'
-  }
-  return 'Browse programs'
-})
-
-const hasWhatsappGroupUrl = computed(() => Boolean(configuredWhatsappGroupUrl))
-
-const whatsappJoinLink = computed(() => {
-  if (configuredWhatsappGroupUrl) {
-    return configuredWhatsappGroupUrl
-  }
-  return 'mailto:hello@linkskool.com?subject=WhatsApp%20Group%20Access&body=Hi%20LinkSkool%2C%20I%20just%20completed%20my%20payment.%20Please%20add%20me%20to%20the%20WhatsApp%20group.'
-})
-
-const featuredPrograms = computed(() => programs.value.slice(0, 6))
-
 const openVideoModal = () => {
   if (!programVideoEmbedUrl.value) return
   showVideoModal.value = true
@@ -248,72 +155,25 @@ const closeVideoModal = () => {
 }
 
 usePageMeta(() => ({
-  title: verificationState.value === 'success'
-    ? 'Payment Complete | Linkskool'
-    : verificationState.value === 'loading'
-      ? 'Verifying Payment | Linkskool'
-      : 'Payment Verification | Linkskool',
-  description: verificationState.value === 'success'
-    ? 'Your Linkskool payment was successful. Discover more programs and continue your learning journey.'
-    : 'Verify your Linkskool payment status and continue your enrollment flow.',
-  keywords: 'payment completion, paystack callback, program enrollment, linkskool',
-  url: 'https://linkskool.com/payment/completion',
+  title: 'Reservation Complete | Linkskool',
+  description: 'Your Linkskool reservation is complete. Follow onboarding steps to get started.',
+  keywords: 'reservation completion, onboarding steps, linkskool',
+  url: 'https://linkskool.com/reservation/completion',
   image: 'https://linkskool.com/assets/og-image.png',
   type: 'website',
 }))
 
-const verifyPayment = async () => {
-  const reference = paymentReference.value.trim()
-
-  verificationError.value = ''
-
-  if (!reference) {
-    if (callbackStatus.value === 'success' || callbackStatus.value === 'failed' || callbackStatus.value === 'abandoned') {
-      clearPendingPayment()
-    }
-    verificationState.value = 'missing'
-    return
-  }
-
-  verificationState.value = 'loading'
-  isVerifyingPayment.value = true
-
-  try {
-    const isPaid = await enrollmentService.paymentStatus(reference)
-    verificationState.value = isPaid ? 'success' : 'failed'
-    clearPendingPayment()
-  } catch (error) {
-    console.error('Failed to verify payment status:', error)
-    if (callbackStatus.value === 'success') {
-      clearPendingPayment()
-    }
-    verificationState.value = 'error'
-    verificationError.value = 'Payment verification failed. Please try again shortly.'
-  } finally {
-    isVerifyingPayment.value = false
-  }
-}
-
 onMounted(async () => {
-  if (hasPaymentCallbackContext.value) {
-    // Once the provider redirects back here, clear any stale checkout lock.
-    clearPendingPayment()
-  }
-
   isLoadingPrograms.value = true
   try {
     const response = await programService.getAllPrograms()
     programs.value = response
   } catch (error) {
-    console.error('Failed to fetch programs for payment completion page:', error)
+    console.error('Failed to fetch programs for reservation completion page:', error)
   } finally {
     isLoadingPrograms.value = false
   }
 })
-
-watch(paymentReference, () => {
-  verifyPayment()
-}, { immediate: true })
 </script>
 
 <template>
@@ -328,28 +188,24 @@ watch(paymentReference, () => {
       <div class="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div
           class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
-          <i class="fa-solid fa-circle-check"></i>
-          <span>{{ statusBadgeLabel }}</span>
+          <i class="fa-solid fa-bookmark"></i>
+          <span>Reservation Complete</span>
         </div>
 
         <h1 class="mt-6 max-w-3xl text-4xl font-black tracking-tight text-white md:text-5xl">
-          {{ heroTitle }}
+          Your seat has been reserved
         </h1>
 
         <p class="mt-5 max-w-3xl text-lg leading-relaxed text-blue-100">
-          {{ heroBody }}
+          {{ selectedProgram?.name
+            ? `Your reservation for ${selectedProgram.name} is confirmed. Follow these onboarding steps to get started.`
+            : 'Your reservation is confirmed. Follow these onboarding steps to get started.' }}
         </p>
-
-        <div v-if="isVerifyingPayment"
-          class="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 py-2 text-sm text-white">
-          <i class="fa-solid fa-spinner fa-spin"></i>
-          <span>Confirming transaction status...</span>
-        </div>
 
         <div class="mt-8 flex flex-wrap items-center gap-4">
           <RouterLink to="/#programs"
             class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-blue-700 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-xl">
-            <span>{{ ctaLabel }}</span>
+            <span>Explore more programs</span>
             <i class="fa-solid fa-arrow-right"></i>
           </RouterLink>
 
@@ -358,16 +214,10 @@ watch(paymentReference, () => {
             <span>Return home</span>
           </RouterLink>
         </div>
-
-        <div v-if="paymentReference"
-          class="mt-8 inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 py-2 text-sm text-blue-100">
-          <span class="font-semibold">Reference:</span>
-          <span class="font-mono">{{ paymentReference }}</span>
-        </div>
       </div>
     </section>
 
-    <section v-if="verificationState === 'success'" class="py-16 bg-white">
+    <section class="py-16 bg-white">
       <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="mb-10">
           <h2 class="text-3xl font-black text-gray-900 md:text-4xl">What to do next</h2>
@@ -496,52 +346,6 @@ watch(paymentReference, () => {
               </div>
             </div>
           </article>
-        </div>
-      </div>
-    </section>
-
-    <section v-else class="py-12 bg-white border-b border-gray-100">
-      <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-wrap items-center gap-3">
-          <a :href="whatsappJoinLink" target="_blank" rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-3 font-semibold text-white transition-colors hover:bg-green-600">
-            <i class="fa-brands fa-whatsapp"></i>
-            <span>Join WhatsApp Group</span>
-          </a>
-          <RouterLink to="/faqs"
-            class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700 transition-colors hover:border-blue-300 hover:text-blue-700">
-            <i class="fa-solid fa-circle-question"></i>
-            <span>Check FAQs</span>
-          </RouterLink>
-        </div>
-      </div>
-    </section>
-
-    <section class="py-16 bg-white">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h2 class="text-3xl font-black text-gray-900 md:text-4xl">Keep your learning streak alive</h2>
-            <p class="mt-2 max-w-2xl text-gray-600">Here are additional programs you can enroll in right away.</p>
-          </div>
-          <RouterLink to="/#programs"
-            class="inline-flex items-center gap-2 self-start rounded-lg border border-gray-200 px-4 py-2 font-semibold text-gray-700 transition-colors hover:border-blue-300 hover:text-blue-700">
-            <span>View all programs</span>
-            <i class="fa-solid fa-arrow-right"></i>
-          </RouterLink>
-        </div>
-
-        <div v-if="isLoadingPrograms" class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div v-for="i in 6" :key="i" class="h-96 animate-pulse rounded-2xl bg-gray-200"></div>
-        </div>
-
-        <div v-else-if="featuredPrograms.length > 0" class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <ProgramCard v-for="program in featuredPrograms" :key="program.id" :program="program" />
-        </div>
-
-        <div v-else class="rounded-2xl border border-gray-200 bg-gray-50 px-6 py-10 text-center">
-          <i class="fa-solid fa-book-open-reader text-4xl text-gray-400"></i>
-          <p class="mt-4 text-gray-600">Programs are not available right now. Please check back shortly.</p>
         </div>
       </div>
     </section>

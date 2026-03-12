@@ -4,7 +4,9 @@ export interface Program {
   name: string;
   description: string;
   imageUrl: string | null;
+  videoUrl: string | null;
   courseCount: number;
   sponsor: string | null;
   startDate: string| null;
+  onboardingSteps: string[] | null;
 }

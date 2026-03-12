@@ -8,6 +8,7 @@ import LandingPage from '@/views/LandingPage.vue'
 import NotFoundPage from '@/views/NotFoundPage.vue'
 import PaymentCompletionPage from '@/views/PaymentCompletionPage.vue'
 import PrivacyPolicyPage from '@/views/PrivacyPolicyPage.vue'
+import ReservationCompletionPage from '@/views/ReservationCompletionPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,6 +55,11 @@ const router = createRouter({
       path: '/payment/completion',
       name: 'payment-completion',
       component: PaymentCompletionPage,
+    },
+    {
+      path: '/reservation/completion',
+      name: 'reservation-completion',
+      component: ReservationCompletionPage,
     },
     {
       path: '/:pathMatch(.*)*',

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import logoSrc from '@/assets/logo.png'
+
+const androidAppUrl = import.meta.env.VITE_LINKSKOOL_ANDROID_APP_URL
+const desktopAppUrl = import.meta.env.VITE_LINKSKOOL_DESKTOP_APP_URL
+
 const scrollToPrograms = () => {
     const element = document.getElementById('programs')
     if (element) {
@@ -62,6 +67,31 @@ const scrollToPrograms = () => {
                             class="px-8 py-4 bg-white text-gray-700 rounded-xl font-semibold border-2 border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer">
                             Watch Demo
                         </button>
+                    </div>
+
+                    <!-- App Download Links -->
+                    <div class="pt-2">
+                        <p class="text-sm font-semibold text-gray-700 mb-3">Download the LinkSkool app</p>
+                        <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center lg:justify-start">
+                            <a :href="androidAppUrl" target="_blank" rel="noopener noreferrer"
+                                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 hover:shadow-lg transition-all duration-200">
+                                <i class="fa-brands fa-google-play"></i>
+                                <span>Android</span>
+                            </a>
+
+                            <a :href="desktopAppUrl" target="_blank" rel="noopener noreferrer"
+                                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-gray-800 font-semibold border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200">
+                                <img :src="logoSrc" alt="LinkSkool" class="w-5 h-5 object-contain" />
+                                <span>Desktop App</span>
+                            </a>
+
+                            <button type="button" disabled
+                                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-100 text-gray-500 font-semibold border border-gray-200 cursor-not-allowed"
+                                aria-disabled="true" title="iOS app coming soon">
+                                <i class="fa-brands fa-apple"></i>
+                                <span>iOS (Coming soon)</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Stats -->
