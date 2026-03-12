@@ -4,7 +4,7 @@ import type { CourseDetail } from '@/api/models'
 
 const props = defineProps<{
     courseDetail: CourseDetail
-    mode: 'pay' | 'reserve'
+    mode: 'pay' | 'reserve' | 'free'
     submitError?: string
     isSubmitting?: boolean
 }>()
@@ -200,7 +200,7 @@ const handleSubmit = async () => {
                             : 'hover:shadow-xl hover:scale-105'
                     ]">
                         <i v-if="props.isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
-                        <span v-else>{{ mode === 'reserve' ? 'Reserve Seat' : 'Proceed to Payment' }}</span>
+                        <span v-else>{{ mode === 'reserve' ? 'Reserve Seat' : mode === 'free' ? 'Confirm Enrollment' : 'Proceed to Payment' }}</span>
                     </button>
                 </div>
             </form>

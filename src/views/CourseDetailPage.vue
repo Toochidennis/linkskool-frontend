@@ -31,7 +31,7 @@ const courseDetail = ref<CourseDetail | null>(null)
 const isLoading = ref(false)
 const loadError = ref('')
 const showEnrollmentForm = ref(false)
-const enrollmentAction = ref<'pay' | 'reserve'>('pay')
+const enrollmentAction = ref<'pay' | 'reserve' | 'free'>('pay')
 const submitError = ref('')
 const successMessage = ref('')
 const isSubmitting = ref(false)
@@ -237,6 +237,7 @@ const displayImageUrl = computed(() => resolveAssetUrl(courseDetail.value?.cohor
 const learningTypeLabel = computed(() =>
   courseDetail.value?.cohort.learningType === 'instructor_led' ? 'Instructor-led' : 'Self-paced',
 )
+const isFreeCourse = computed(() => Boolean(courseDetail.value?.cohort.isFree))
 const isEnrollmentClosed = computed(() => {
   const detail = courseDetail.value
   if (!detail) return false
@@ -249,7 +250,7 @@ const isEnrollmentClosed = computed(() => {
 const handleEnroll = () => {
   if (isEnrollmentClosed.value) return
 
-  if (hasPendingPayment.value) {
+  if (!isFreeCourse.value && hasPendingPayment.value) {
     submitError.value = 'You already have a checkout in progress. Resume or clear it before starting another one.'
     return
   }
@@ -260,7 +261,7 @@ const handleEnroll = () => {
     lastPaymentUrl.value = ''
     lastPaymentReference.value = ''
   }
-  enrollmentAction.value = 'pay'
+  enrollmentAction.value = isFreeCourse.value ? 'free' : 'pay'
   showEnrollmentForm.value = true
 }
 
@@ -358,6 +359,27 @@ const handleFormSubmit = async (formData: EnrollmentFormData) => {
       return
     }
 
+    if (enrollmentAction.value === 'free') {
+      const payload: ReservePayload = basePayload
+      const isEnrolled = await enrollmentService.freeEnrollment(payload)
+
+      if (!isEnrolled) {
+        submitError.value = 'Enrollment could not be completed right now. Please try again.'
+        return
+      }
+
+      showEnrollmentForm.value = false
+      successMessage.value = 'Your enrollment is complete.'
+      await router.push({
+        name: 'reservation-completion',
+        query: {
+          program: courseDetail.value.program.slug,
+          completion: 'enrollment',
+        },
+      })
+      return
+    }
+
     const payload: ReservePayload = basePayload
     const isReserved = await enrollmentService.reserve(payload)
 
@@ -372,13 +394,16 @@ const handleFormSubmit = async (formData: EnrollmentFormData) => {
       name: 'reservation-completion',
       query: {
         program: courseDetail.value.program.slug,
+        completion: 'reservation',
       },
     })
   } catch (error) {
     console.error('Failed to submit enrollment request:', error)
-    submitError.value = enrollmentAction.value === 'reserve'
+    submitError.value = enrollmentAction.value === 'pay'
+      ? 'Payment could not be completed right now. Please try again.'
+      : enrollmentAction.value === 'reserve'
       ? 'Reservation could not be completed right now. Please try again.'
-      : 'Payment could not be completed right now. Please try again.'
+      : 'Enrollment could not be completed right now. Please try again.'
   } finally {
     isSubmitting.value = false
   }

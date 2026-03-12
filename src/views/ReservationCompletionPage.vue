@@ -33,6 +33,14 @@ const callbackProgramSlug = computed(() => {
   return (raw ?? '').trim()
 })
 
+const completionType = computed(() => {
+  const raw = route.query.completion
+  const value = Array.isArray(raw) ? (raw[0] ?? '') : (raw ?? '')
+  return value.toLowerCase() === 'enrollment' ? 'enrollment' : 'reservation'
+})
+
+const isEnrollmentCompletion = computed(() => completionType.value === 'enrollment')
+
 const selectedProgram = computed(() => {
   const slug = callbackProgramSlug.value.toLowerCase()
   if (!slug) return null
@@ -155,8 +163,10 @@ const closeVideoModal = () => {
 }
 
 usePageMeta(() => ({
-  title: 'Reservation Complete | Linkskool',
-  description: 'Your Linkskool reservation is complete. Follow onboarding steps to get started.',
+  title: isEnrollmentCompletion.value ? 'Enrollment Complete | Linkskool' : 'Reservation Complete | Linkskool',
+  description: isEnrollmentCompletion.value
+    ? 'Your Linkskool enrollment is complete. Follow onboarding steps to get started.'
+    : 'Your Linkskool reservation is complete. Follow onboarding steps to get started.',
   keywords: 'reservation completion, onboarding steps, linkskool',
   url: 'https://linkskool.com/reservation/completion',
   image: 'https://linkskool.com/assets/og-image.png',
@@ -188,36 +198,40 @@ onMounted(async () => {
       <div class="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div
           class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
-          <i class="fa-solid fa-bookmark"></i>
-          <span>Reservation Complete</span>
+          <i :class="isEnrollmentCompletion ? 'fa-solid fa-circle-check' : 'fa-solid fa-bookmark'"></i>
+          <span>{{ isEnrollmentCompletion ? 'Enrollment Complete' : 'Reservation Complete' }}</span>
         </div>
 
         <h1 class="mt-6 max-w-3xl text-4xl font-black tracking-tight text-white md:text-5xl">
-          Your seat has been reserved
+          {{ isEnrollmentCompletion ? 'Thank you for your enrollment' : 'Your seat has been reserved' }}
         </h1>
 
         <p class="mt-5 max-w-3xl text-lg leading-relaxed text-blue-100">
-          {{ selectedProgram?.name
-            ? `Your reservation for ${selectedProgram.name} is confirmed. Follow these onboarding steps to get started.`
-            : 'Your reservation is confirmed. Follow these onboarding steps to get started.' }}
+          {{ isEnrollmentCompletion
+            ? (selectedProgram?.name
+              ? `Your enrollment for ${selectedProgram.name} is confirmed. Follow these onboarding steps to get started.`
+              : 'Your enrollment is confirmed. Follow these onboarding steps to get started.')
+            : (selectedProgram?.name
+              ? `Your reservation for ${selectedProgram.name} is confirmed. Follow these onboarding steps to get started.`
+              : 'Your reservation is confirmed. Follow these onboarding steps to get started.') }}
         </p>
 
         <div class="mt-8 flex flex-wrap items-center gap-4">
-          <RouterLink to="/#programs"
+          <a href="#next-steps"
             class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-blue-700 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-xl">
-            <span>Explore more programs</span>
-            <i class="fa-solid fa-arrow-right"></i>
-          </RouterLink>
+            <span>Start onboarding steps</span>
+            <i class="fa-solid fa-arrow-down"></i>
+          </a>
 
-          <RouterLink to="/"
-            class="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-transparent px-6 py-3 font-semibold text-white transition-colors duration-200 hover:bg-white/10">
-            <span>Return home</span>
+          <RouterLink to="/#programs"
+            class="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-6 py-3 font-semibold text-white transition-colors duration-200 hover:bg-white/20">
+            <span>Explore programs later</span>
           </RouterLink>
         </div>
       </div>
     </section>
 
-    <section class="py-16 bg-white">
+    <section id="next-steps" class="py-16 bg-white">
       <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="mb-10">
           <h2 class="text-3xl font-black text-gray-900 md:text-4xl">What to do next</h2>

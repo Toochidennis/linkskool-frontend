@@ -20,6 +20,15 @@ export const enrollmentService = {
     return response.data;
   },
 
+    async freeEnrollment(payload: ReservePayload, signal?: AbortSignal) {
+    const response = await apiRequest<boolean>('learning/cohorts/enrollments/free', {
+      method: "POST",
+      signal,
+      body: payload,
+    });
+    return response.data;
+  },
+
   async paymentStatus(reference: string, signal?: AbortSignal) {
     const response = await apiRequest<boolean>(`learning/cohorts/enrollments/checkout/${reference}/status`, {
       method: "GET",

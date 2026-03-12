@@ -18,6 +18,10 @@ const nairaFormatter = new Intl.NumberFormat('en-NG', {
 })
 
 const displayPrice = computed(() => {
+  if (props.courseDetail.cohort.isFree) {
+    return 'Free'
+  }
+
   const price = props.courseDetail.cohort.cost || 0
   const discount = props.courseDetail.cohort.discount || 0
 
@@ -36,6 +40,8 @@ const displayPrice = computed(() => {
 const learningTypeLabel = computed(() =>
   props.courseDetail.cohort.learningType === 'instructor_led' ? 'Instructor-led' : 'Self-paced'
 )
+
+const isFreeCourse = computed(() => Boolean(props.courseDetail.cohort.isFree))
 
 const enrollmentDeadlineDate = computed(() => {
   const rawValue = props.courseDetail.cohort.enrollmentDeadline
@@ -78,7 +84,7 @@ const formatDateTime = (value: Date | null) => {
     <!-- Price Section -->
     <div class="p-6 bg-gradient-to-br from-blue-50 to-orange-50 border-b border-gray-200">
       <div v-if="typeof displayPrice === 'string'" class="text-center">
-        <div class="text-4xl font-bold text-gray-900">{{ displayPrice }}</div>
+        <div class="text-4xl font-bold" :class="displayPrice === 'Free' ? 'text-green-600' : 'text-gray-900'">{{ displayPrice }}</div>
       </div>
       <div v-else class="text-center space-y-2">
         <div class="flex items-center justify-center gap-3">
@@ -106,7 +112,7 @@ const formatDateTime = (value: Date | null) => {
           <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform text-sm"></i>
         </button>
 
-        <button @click="emit('reserve')" :disabled="isEnrollmentClosed" :class="[
+        <button v-if="!isFreeCourse" @click="emit('reserve')" :disabled="isEnrollmentClosed" :class="[
           'w-full px-6 py-4 rounded-xl font-semibold border-2 transition-all duration-200 flex items-center justify-center gap-2',
           isEnrollmentClosed
             ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed'

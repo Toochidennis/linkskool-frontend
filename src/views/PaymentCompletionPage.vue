@@ -347,15 +347,16 @@ watch(paymentReference, () => {
         </div>
 
         <div class="mt-8 flex flex-wrap items-center gap-4">
-          <RouterLink to="/#programs"
+          <a v-if="verificationState === 'success'" href="#next-steps"
+            class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-blue-700 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-xl">
+            <span>Start onboarding steps</span>
+            <i class="fa-solid fa-arrow-down"></i>
+          </a>
+
+          <RouterLink v-else to="/#programs"
             class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-blue-700 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-xl">
             <span>{{ ctaLabel }}</span>
             <i class="fa-solid fa-arrow-right"></i>
-          </RouterLink>
-
-          <RouterLink to="/"
-            class="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-transparent px-6 py-3 font-semibold text-white transition-colors duration-200 hover:bg-white/10">
-            <span>Return home</span>
           </RouterLink>
         </div>
 
@@ -367,7 +368,7 @@ watch(paymentReference, () => {
       </div>
     </section>
 
-    <section v-if="verificationState === 'success'" class="py-16 bg-white">
+    <section id="next-steps" v-if="verificationState === 'success'" class="py-16 bg-white">
       <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="mb-10">
           <h2 class="text-3xl font-black text-gray-900 md:text-4xl">What to do next</h2>
