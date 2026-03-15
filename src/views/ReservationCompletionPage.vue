@@ -19,7 +19,6 @@ const route = useRoute()
 
 const programs = ref<Program[]>([])
 const isLoadingPrograms = ref(false)
-const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
 const androidAppUrl = (import.meta.env.VITE_LINKSKOOL_ANDROID_APP_URL as string | undefined)?.trim() ?? ''
 const iosAppUrl = (import.meta.env.VITE_LINKSKOOL_IOS_APP_URL as string | undefined)?.trim() ?? ''
 const desktopAppUrl = (import.meta.env.VITE_LINKSKOOL_DESKTOP_APP_URL as string | undefined)?.trim() ?? ''
@@ -27,6 +26,14 @@ const showVideoModal = ref(false)
 
 const callbackProgramSlug = computed(() => {
   const raw = route.query.program
+  if (Array.isArray(raw)) {
+    return (raw[0] ?? '').trim()
+  }
+  return (raw ?? '').trim()
+})
+
+const callbackWhatsappGroupLink = computed(() => {
+  const raw = route.query.whatsapp
   if (Array.isArray(raw)) {
     return (raw[0] ?? '').trim()
   }
@@ -49,14 +56,8 @@ const selectedProgram = computed(() => {
 
 const hasAndroidAppUrl = computed(() => Boolean(androidAppUrl))
 const hasDesktopAppUrl = computed(() => Boolean(desktopAppUrl))
-const hasWhatsappGroupUrl = computed(() => Boolean(configuredWhatsappGroupUrl))
-
-const whatsappJoinLink = computed(() => {
-  if (configuredWhatsappGroupUrl) {
-    return configuredWhatsappGroupUrl
-  }
-  return 'mailto:hello@linkskool.com?subject=WhatsApp%20Group%20Access&body=Hi%20LinkSkool%2C%20I%20just%20reserved%20my%20seat.%20Please%20add%20me%20to%20the%20WhatsApp%20group.'
-})
+const whatsappJoinLink = computed(() => callbackWhatsappGroupLink.value)
+const hasWhatsappStep = computed(() => Boolean(whatsappJoinLink.value))
 
 const normalizeUrl = (rawUrl: string) => {
   const cleaned = rawUrl.trim()
@@ -150,7 +151,8 @@ const parsedAdditionalOnboardingSteps = computed(() =>
 
 const programVideoEmbedUrl = computed(() => toEmbeddableVideoUrl(selectedProgram.value?.videoUrl ?? null))
 const hasVideoStep = computed(() => Boolean(selectedProgram.value?.videoUrl && programVideoEmbedUrl.value))
-const remainingStepsStartNumber = computed(() => (hasVideoStep.value ? 4 : 3))
+const videoStepNumber = computed(() => (hasWhatsappStep.value ? 3 : 2))
+const remainingStepsStartNumber = computed(() => videoStepNumber.value + (hasVideoStep.value ? 1 : 0))
 const programVideoPreviewUrl = computed(() => {
   const embed = programVideoEmbedUrl.value
   if (!embed) return null
@@ -291,7 +293,7 @@ onMounted(async () => {
             </div>
           </article>
 
-          <article class="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5 md:p-6">
+          <article v-if="hasWhatsappStep" class="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5 md:p-6">
             <div class="flex items-start gap-4">
               <div
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
@@ -305,9 +307,6 @@ onMounted(async () => {
                   <i class="fa-brands fa-whatsapp"></i>
                   <span>Join WhatsApp Group</span>
                 </a>
-                <p v-if="!hasWhatsappGroupUrl" class="mt-2 text-sm text-gray-500">
-                  WhatsApp invite link is not yet public. Use the button above to request access.
-                </p>
               </div>
             </div>
           </article>
@@ -318,7 +317,7 @@ onMounted(async () => {
                 <div class="flex items-start gap-4">
                   <div
                     class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-600 text-sm font-bold text-white">
-                    3
+                    {{ videoStepNumber }}
                   </div>
                   <div>
                     <h3 class="text-xl font-bold text-gray-900">Watch onboarding video</h3>

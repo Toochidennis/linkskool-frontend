@@ -10,4 +10,5 @@ export interface Cohort {
   trialValue: number | null;
   enrollmentDeadline: string | null,
   learningType: 'instructor_led' | 'self_paced';
+  whatsappGroupLink: string | null;
 }

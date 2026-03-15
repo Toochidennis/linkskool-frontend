@@ -21,6 +21,7 @@ export interface CourseCohortDetail {
   deliveryMode: string | null;
   enrollmentDeadline: string | null;
   learningType: 'instructor_led' | 'self_paced';
+  whatsappGroupLink: string | null;
 }
 
 export interface CourseDetail {

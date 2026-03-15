@@ -9,4 +9,5 @@ export interface Program {
   sponsor: string | null;
   startDate: string| null;
   onboardingSteps: string[] | null;
+  whatsappGroupLink: string | null;
 }

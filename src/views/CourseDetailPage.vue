@@ -39,35 +39,43 @@ const lastPaymentUrl = ref('')
 const lastPaymentReference = ref('')
 const pendingPayment = ref<PendingPayment | null>(readPendingPayment())
 const isCheckingPendingPayment = ref(false)
-const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
 const configuredPaymentCallbackUrl = (import.meta.env.VITE_PAYMENT_CALLBACK_URL as string | undefined)?.trim() ?? ''
 const PAYMENT_CALLBACK_URL = configuredPaymentCallbackUrl || `${window.location.origin}/payment/completion`
 
-const buildPaymentCallbackUrl = (programSlug?: string | null) => {
+const buildPaymentCallbackUrl = (programSlug?: string | null, whatsappGroupLink?: string | null) => {
   const raw = PAYMENT_CALLBACK_URL.trim()
   if (!raw) return `${window.location.origin}/payment/completion`
+
+  const whatsapp = whatsappGroupLink?.trim() ?? ''
 
   try {
     const callbackUrl = new URL(raw)
     if (programSlug) {
       callbackUrl.searchParams.set('program', programSlug)
     }
+    if (whatsapp) {
+      callbackUrl.searchParams.set('whatsapp', whatsapp)
+    }
     return callbackUrl.toString()
   } catch {
+    const queryParts: string[] = []
+    if (programSlug) {
+      queryParts.push(`program=${encodeURIComponent(programSlug)}`)
+    }
+    if (whatsapp) {
+      queryParts.push(`whatsapp=${encodeURIComponent(whatsapp)}`)
+    }
+
+    if (queryParts.length === 0) {
+      return raw
+    }
+
     const separator = raw.includes('?') ? '&' : '?'
-    return programSlug ? `${raw}${separator}program=${encodeURIComponent(programSlug)}` : raw
+    return `${raw}${separator}${queryParts.join('&')}`
   }
 }
 
-const hasWhatsappGroupUrl = computed(() => Boolean(configuredWhatsappGroupUrl))
 const hasPendingPayment = computed(() => Boolean(pendingPayment.value?.reference && pendingPayment.value?.paymentUrl))
-
-const whatsappJoinLink = computed(() => {
-  if (configuredWhatsappGroupUrl) {
-    return configuredWhatsappGroupUrl
-  }
-  return 'mailto:hello@linkskool.com?subject=WhatsApp%20Group%20Access&body=Hi%20LinkSkool%2C%20I%20just%20reserved%20my%20seat.%20Please%20add%20me%20to%20the%20WhatsApp%20group.'
-})
 
 const syncPendingPaymentState = (value: PendingPayment | null) => {
   pendingPayment.value = value
@@ -320,7 +328,7 @@ const handleFormSubmit = async (formData: EnrollmentFormData) => {
     if (enrollmentAction.value === 'pay') {
       const payload: PaymentPayload = {
         ...basePayload,
-        callbackUrl: buildPaymentCallbackUrl(courseDetail.value.program.slug),
+        callbackUrl: buildPaymentCallbackUrl(courseDetail.value.program.slug, courseDetail.value.cohort.whatsappGroupLink),
       }
 
       const paymentResponse = await enrollmentService.makePayment(payload)
@@ -375,6 +383,7 @@ const handleFormSubmit = async (formData: EnrollmentFormData) => {
         query: {
           program: courseDetail.value.program.slug,
           completion: 'enrollment',
+          whatsapp: courseDetail.value.cohort.whatsappGroupLink ?? '',
         },
       })
       return
@@ -395,6 +404,7 @@ const handleFormSubmit = async (formData: EnrollmentFormData) => {
       query: {
         program: courseDetail.value.program.slug,
         completion: 'reservation',
+        whatsapp: courseDetail.value.cohort.whatsappGroupLink ?? '',
       },
     })
   } catch (error) {

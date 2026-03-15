@@ -46,23 +46,39 @@ const lastPaymentUrl = ref('')
 const pendingPayment = ref<PendingPayment | null>(readPendingPayment())
 const isCheckingPendingPayment = ref(false)
 const currentTime = ref(Date.now())
-const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
 const configuredPaymentCallbackUrl = (import.meta.env.VITE_PAYMENT_CALLBACK_URL as string | undefined)?.trim() ?? ''
 const PAYMENT_CALLBACK_URL = configuredPaymentCallbackUrl || `${window.location.origin}/payment/completion`
 
-const buildPaymentCallbackUrl = (programSlug?: string | null) => {
+const buildPaymentCallbackUrl = (programSlug?: string | null, whatsappGroupLink?: string | null) => {
   const raw = PAYMENT_CALLBACK_URL.trim()
   if (!raw) return `${window.location.origin}/payment/completion`
+
+  const whatsapp = whatsappGroupLink?.trim() ?? ''
 
   try {
     const callbackUrl = new URL(raw)
     if (programSlug) {
       callbackUrl.searchParams.set('program', programSlug)
     }
+    if (whatsapp) {
+      callbackUrl.searchParams.set('whatsapp', whatsapp)
+    }
     return callbackUrl.toString()
   } catch {
+    const queryParts: string[] = []
+    if (programSlug) {
+      queryParts.push(`program=${encodeURIComponent(programSlug)}`)
+    }
+    if (whatsapp) {
+      queryParts.push(`whatsapp=${encodeURIComponent(whatsapp)}`)
+    }
+
+    if (queryParts.length === 0) {
+      return raw
+    }
+
     const separator = raw.includes('?') ? '&' : '?'
-    return programSlug ? `${raw}${separator}program=${encodeURIComponent(programSlug)}` : raw
+    return `${raw}${separator}${queryParts.join('&')}`
   }
 }
 
@@ -132,13 +148,11 @@ const selectedEnrollmentItems = computed(() =>
     })),
 )
 
-const hasWhatsappGroupUrl = computed(() => Boolean(configuredWhatsappGroupUrl))
+const hasWhatsappGroupUrl = computed(() => Boolean(program.value?.whatsappGroupLink?.trim()))
 
 const whatsappJoinLink = computed(() => {
-  if (configuredWhatsappGroupUrl) {
-    return configuredWhatsappGroupUrl
-  }
-  return 'mailto:hello@linkskool.com?subject=WhatsApp%20Group%20Access&body=Hi%20LinkSkool%2C%20I%20just%20reserved%20my%20seat.%20Please%20add%20me%20to%20the%20WhatsApp%20group.'
+  const programWhatsappGroupLink = program.value?.whatsappGroupLink?.trim()
+  return programWhatsappGroupLink ?? ''
 })
 
 const subtotal = computed(() =>
@@ -478,7 +492,7 @@ const submitEnrollment = async () => {
     if (enrollmentAction.value === 'pay') {
       const payload: PaymentPayload = {
         ...basePayload,
-        callbackUrl: buildPaymentCallbackUrl(program.value?.slug),
+        callbackUrl: buildPaymentCallbackUrl(program.value?.slug, program.value?.whatsappGroupLink),
       }
 
       const paymentResponse = await enrollmentService.makePayment(payload)
@@ -533,6 +547,7 @@ const submitEnrollment = async () => {
       name: 'reservation-completion',
       query: {
         program: program.value?.slug ?? '',
+        whatsapp: program.value?.whatsappGroupLink ?? '',
       },
     })
   } catch (error) {
@@ -1017,7 +1032,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="p-6 space-y-4">
-          <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+          <div v-if="hasWhatsappGroupUrl" class="rounded-xl border border-blue-100 bg-blue-50 p-4">
             <p class="text-sm text-blue-900">
               Stay updated in our learner community for onboarding updates, reminders, and live support.
             </p>
@@ -1026,9 +1041,6 @@ onBeforeUnmount(() => {
               <i class="fa-brands fa-whatsapp"></i>
               <span>Join WhatsApp Group</span>
             </a>
-            <p v-if="!hasWhatsappGroupUrl" class="mt-2 text-xs text-blue-700">
-              WhatsApp link is private for now. Use the button to request access.
-            </p>
           </div>
 
           <div class="rounded-xl border border-orange-100 bg-orange-50 p-4">

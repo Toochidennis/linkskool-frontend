@@ -24,7 +24,6 @@ const isLoadingPrograms = ref(false)
 const isVerifyingPayment = ref(false)
 const verificationError = ref('')
 const showVideoModal = ref(false)
-const configuredWhatsappGroupUrl = (import.meta.env.VITE_WHATSAPP_GROUP_URL as string | undefined)?.trim() ?? ''
 const androidAppUrl = (import.meta.env.VITE_LINKSKOOL_ANDROID_APP_URL as string | undefined)?.trim() ?? ''
 const iosAppUrl = (import.meta.env.VITE_LINKSKOOL_IOS_APP_URL as string | undefined)?.trim() ?? ''
 const desktopAppUrl = (import.meta.env.VITE_LINKSKOOL_DESKTOP_APP_URL as string | undefined)?.trim() ?? ''
@@ -54,6 +53,14 @@ const hasPaymentCallbackContext = computed(() => {
 
 const callbackProgramSlug = computed(() => {
   const raw = route.query.program
+  if (Array.isArray(raw)) {
+    return (raw[0] ?? '').trim()
+  }
+  return (raw ?? '').trim()
+})
+
+const callbackWhatsappGroupLink = computed(() => {
+  const raw = route.query.whatsapp
   if (Array.isArray(raw)) {
     return (raw[0] ?? '').trim()
   }
@@ -159,9 +166,12 @@ const parsedAdditionalOnboardingSteps = computed(() =>
   })),
 )
 
+const whatsappJoinLink = computed(() => callbackWhatsappGroupLink.value)
+const hasWhatsappStep = computed(() => Boolean(whatsappJoinLink.value))
 const programVideoEmbedUrl = computed(() => toEmbeddableVideoUrl(selectedProgram.value?.videoUrl ?? null))
 const hasVideoStep = computed(() => Boolean(selectedProgram.value?.videoUrl && programVideoEmbedUrl.value))
-const remainingStepsStartNumber = computed(() => (hasVideoStep.value ? 4 : 3))
+const videoStepNumber = computed(() => (hasWhatsappStep.value ? 3 : 2))
+const remainingStepsStartNumber = computed(() => videoStepNumber.value + (hasVideoStep.value ? 1 : 0))
 const programVideoPreviewUrl = computed(() => {
   const embed = programVideoEmbedUrl.value
   if (!embed) return null
@@ -231,15 +241,6 @@ const ctaLabel = computed(() => {
     return 'Try enrollment again'
   }
   return 'Browse programs'
-})
-
-const hasWhatsappGroupUrl = computed(() => Boolean(configuredWhatsappGroupUrl))
-
-const whatsappJoinLink = computed(() => {
-  if (configuredWhatsappGroupUrl) {
-    return configuredWhatsappGroupUrl
-  }
-  return 'mailto:hello@linkskool.com?subject=WhatsApp%20Group%20Access&body=Hi%20LinkSkool%2C%20I%20just%20completed%20my%20payment.%20Please%20add%20me%20to%20the%20WhatsApp%20group.'
 })
 
 const featuredPrograms = computed(() => programs.value.slice(0, 6))
@@ -428,7 +429,7 @@ watch(paymentReference, () => {
             </div>
           </article>
 
-          <article class="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5 md:p-6">
+          <article v-if="hasWhatsappStep" class="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5 md:p-6">
             <div class="flex items-start gap-4">
               <div
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
@@ -442,9 +443,6 @@ watch(paymentReference, () => {
                   <i class="fa-brands fa-whatsapp"></i>
                   <span>Join WhatsApp Group</span>
                 </a>
-                <p v-if="!hasWhatsappGroupUrl" class="mt-2 text-sm text-gray-500">
-                  WhatsApp invite link is not yet public. Use the button above to request access.
-                </p>
               </div>
             </div>
           </article>
@@ -455,7 +453,7 @@ watch(paymentReference, () => {
                 <div class="flex items-start gap-4">
                   <div
                     class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-600 text-sm font-bold text-white">
-                    3
+                    {{ videoStepNumber }}
                   </div>
                   <div>
                     <h3 class="text-xl font-bold text-gray-900">Watch onboarding video</h3>
@@ -525,7 +523,7 @@ watch(paymentReference, () => {
     <section v-else class="py-12 bg-white border-b border-gray-100">
       <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-wrap items-center gap-3">
-          <a :href="whatsappJoinLink" target="_blank" rel="noopener noreferrer"
+          <a v-if="hasWhatsappStep" :href="whatsappJoinLink" target="_blank" rel="noopener noreferrer"
             class="inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-3 font-semibold text-white transition-colors hover:bg-green-600">
             <i class="fa-brands fa-whatsapp"></i>
             <span>Join WhatsApp Group</span>
