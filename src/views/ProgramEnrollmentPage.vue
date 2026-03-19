@@ -148,11 +148,28 @@ const selectedEnrollmentItems = computed(() =>
     })),
 )
 
-const hasWhatsappGroupUrl = computed(() => Boolean(program.value?.whatsappGroupLink?.trim()))
+const resolveWhatsappGroupLink = (...candidates: Array<string | null | undefined>) =>
+  candidates
+    .map((value) => value?.trim() ?? '')
+    .find(Boolean) ?? ''
+
+const selectedCourseWhatsappGroupLink = computed(() =>
+  selectedCourses.value
+    .map((course) => course.cohort?.whatsappGroupLink)
+    .find((value) => Boolean(value?.trim()))?.trim() ?? '',
+)
+
+const effectiveWhatsappGroupLink = computed(() =>
+  resolveWhatsappGroupLink(
+    program.value?.whatsappGroupLink,
+    selectedCourseWhatsappGroupLink.value,
+  ),
+)
+
+const hasWhatsappGroupUrl = computed(() => Boolean(effectiveWhatsappGroupLink.value))
 
 const whatsappJoinLink = computed(() => {
-  const programWhatsappGroupLink = program.value?.whatsappGroupLink?.trim()
-  return programWhatsappGroupLink ?? ''
+  return effectiveWhatsappGroupLink.value
 })
 
 const subtotal = computed(() =>
@@ -492,7 +509,7 @@ const submitEnrollment = async () => {
     if (enrollmentAction.value === 'pay') {
       const payload: PaymentPayload = {
         ...basePayload,
-        callbackUrl: buildPaymentCallbackUrl(program.value?.slug, program.value?.whatsappGroupLink),
+        callbackUrl: buildPaymentCallbackUrl(program.value?.slug, effectiveWhatsappGroupLink.value),
       }
 
       const paymentResponse = await enrollmentService.makePayment(payload)
@@ -547,7 +564,7 @@ const submitEnrollment = async () => {
       name: 'reservation-completion',
       query: {
         program: program.value?.slug ?? '',
-        whatsapp: program.value?.whatsappGroupLink ?? '',
+        whatsapp: effectiveWhatsappGroupLink.value,
       },
     })
   } catch (error) {
@@ -576,6 +593,7 @@ const fetchProgramCourses = async () => {
 
   try {
     const response = await programService.getProgramCourses(programRef.value)
+    console.log('Fetched program courses for enrollment:', response)
     program.value = response.program
     courses.value = response.courses
     selectedCourseIds.value = normalizedCourses.value

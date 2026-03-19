@@ -17,6 +17,35 @@ interface StepSegment {
 
 const route = useRoute()
 
+const normalizeQueryKey = (key: string) => key.trim().replace(/^amp;/i, '').toLowerCase()
+
+const getQueryParam = (...keys: string[]) => {
+  const normalizedKeys = new Set(keys.map((key) => key.toLowerCase()))
+
+  for (const key of keys) {
+    const raw = route.query[key]
+    if (Array.isArray(raw)) {
+      return raw[0] ?? ''
+    }
+    if (typeof raw === 'string') {
+      return raw
+    }
+  }
+
+  for (const [queryKey, rawValue] of Object.entries(route.query)) {
+    if (!normalizedKeys.has(normalizeQueryKey(queryKey))) continue
+
+    if (Array.isArray(rawValue)) {
+      return rawValue[0] ?? ''
+    }
+    if (typeof rawValue === 'string') {
+      return rawValue
+    }
+  }
+
+  return ''
+}
+
 const programs = ref<Program[]>([])
 const isLoadingPrograms = ref(false)
 const androidAppUrl = (import.meta.env.VITE_LINKSKOOL_ANDROID_APP_URL as string | undefined)?.trim() ?? ''
@@ -25,24 +54,15 @@ const desktopAppUrl = (import.meta.env.VITE_LINKSKOOL_DESKTOP_APP_URL as string 
 const showVideoModal = ref(false)
 
 const callbackProgramSlug = computed(() => {
-  const raw = route.query.program
-  if (Array.isArray(raw)) {
-    return (raw[0] ?? '').trim()
-  }
-  return (raw ?? '').trim()
+  return getQueryParam('program').trim()
 })
 
 const callbackWhatsappGroupLink = computed(() => {
-  const raw = route.query.whatsapp
-  if (Array.isArray(raw)) {
-    return (raw[0] ?? '').trim()
-  }
-  return (raw ?? '').trim()
+  return getQueryParam('whatsapp').trim()
 })
 
 const completionType = computed(() => {
-  const raw = route.query.completion
-  const value = Array.isArray(raw) ? (raw[0] ?? '') : (raw ?? '')
+  const value = getQueryParam('completion')
   return value.toLowerCase() === 'enrollment' ? 'enrollment' : 'reservation'
 })
 
