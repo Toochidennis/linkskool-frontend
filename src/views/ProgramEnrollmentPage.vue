@@ -593,7 +593,6 @@ const fetchProgramCourses = async () => {
 
   try {
     const response = await programService.getProgramCourses(programRef.value)
-    console.log('Fetched program courses for enrollment:', response)
     program.value = response.program
     courses.value = response.courses
     selectedCourseIds.value = normalizedCourses.value

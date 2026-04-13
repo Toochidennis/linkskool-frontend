@@ -9,6 +9,7 @@ import NotFoundPage from '@/views/NotFoundPage.vue'
 import PaymentCompletionPage from '@/views/PaymentCompletionPage.vue'
 import PrivacyPolicyPage from '@/views/PrivacyPolicyPage.vue'
 import ReservationCompletionPage from '@/views/ReservationCompletionPage.vue'
+import ResetPasswordPage from '@/views/ResetPasswordPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,6 +61,11 @@ const router = createRouter({
       path: '/reservation/completion',
       name: 'reservation-completion',
       component: ReservationCompletionPage,
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: ResetPasswordPage,
     },
     {
       path: '/:pathMatch(.*)*',

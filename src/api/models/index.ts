@@ -10,3 +10,4 @@ export * from './faqs';
 export * from './payment-payload';
 export * from './reserve-payload';
 export * from './payment-response';
+export * from './reset-password-payload';
