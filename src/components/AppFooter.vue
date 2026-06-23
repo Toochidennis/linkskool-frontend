@@ -122,7 +122,9 @@ onMounted(async () => {
               <RouterLink to="/privacy-policy" class="hover:text-white transition-colors">Privacy Policy
               </RouterLink>
             </li>
-            <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+            <li>
+              <RouterLink to="/terms-of-use" class="hover:text-white transition-colors">Terms of Use</RouterLink>
+            </li>
           </ul>
         </div>
       </div>

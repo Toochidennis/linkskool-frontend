@@ -64,7 +64,7 @@ usePageMeta({
                         <ul class="space-y-3 text-gray-700">
                             <li><strong>Account</strong> – A unique account created to access the Service.</li>
                             <li><strong>Application</strong> – The Linkskool mobile and desktop software.</li>
-                            <li><strong>Company</strong> – Digital Dreams Limited, No. 86 Ogui Road, opposite Stadium,
+                            <li><strong>Company</strong> – Linkskool Online Ventures Limited, No. 86 Ogui Road, opposite Stadium,
                                 Enugu, Nigeria.</li>
                             <li><strong>Device</strong> – Any device capable of accessing the Service.</li>
                             <li><strong>Personal Data</strong> – Any information relating to an identified or
@@ -383,32 +383,40 @@ usePageMeta({
 
                         <div class="space-y-4">
                             <div class="flex items-start gap-3">
-                                <i class="fa-solid fa-envelope text-blue-600 text-xl mt-1"></i>
+                                <i class="fa-solid fa-building text-blue-600 text-xl mt-1"></i>
                                 <div>
-                                    <p class="font-semibold text-gray-900">Email</p>
-                                    <a href="mailto:privacy@linkskool.com"
-                                        class="text-blue-600 hover:underline">privacy@linkskool.com</a>
+                                    <p class="font-semibold text-gray-900">Company</p>
+                                    <p class="text-gray-700">Linkskool Online Ventures Limited</p>
                                 </div>
                             </div>
 
                             <div class="flex items-start gap-3">
-                                <i class="fa-solid fa-building text-blue-600 text-xl mt-1"></i>
+                                <i class="fa-solid fa-location-dot text-blue-600 text-xl mt-1"></i>
                                 <div>
-                                    <p class="font-semibold text-gray-900">Postal Address</p>
+                                    <p class="font-semibold text-gray-900">Address</p>
                                     <p class="text-gray-700">
-                                        Digital Dreams Limited<br>
-                                        No. 86 Ogui Road, opposite Stadium<br>
+                                        No. 86 Ogui Road, Opposite Stadium<br>
                                         Enugu, Nigeria
                                     </p>
                                 </div>
                             </div>
 
                             <div class="flex items-start gap-3">
-                                <i class="fa-solid fa-shield-halved text-blue-600 text-xl mt-1"></i>
+                                <i class="fa-solid fa-globe text-blue-600 text-xl mt-1"></i>
                                 <div>
-                                    <p class="font-semibold text-gray-900">Data Protection Officer</p>
-                                    <a href="mailto:dpo@linkskool.com"
-                                        class="text-blue-600 hover:underline">dpo@linkskool.com</a>
+                                    <p class="font-semibold text-gray-900">Website</p>
+                                    <a href="https://linkskool.com" class="text-blue-600 hover:underline">
+                                        https://linkskool.com
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <i class="fa-solid fa-envelope text-blue-600 text-xl mt-1"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-900">Email</p>
+                                    <a href="mailto:support@linkskool.com"
+                                        class="text-blue-600 hover:underline">support@linkskool.com</a>
                                 </div>
                             </div>
                         </div>

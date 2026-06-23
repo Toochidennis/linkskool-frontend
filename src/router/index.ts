@@ -10,6 +10,7 @@ import PaymentCompletionPage from '@/views/PaymentCompletionPage.vue'
 import PrivacyPolicyPage from '@/views/PrivacyPolicyPage.vue'
 import ReservationCompletionPage from '@/views/ReservationCompletionPage.vue'
 import ResetPasswordPage from '@/views/ResetPasswordPage.vue'
+import TermsOfUsePage from '@/views/TermsOfUsePage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,11 @@ const router = createRouter({
       path: '/privacy-policy',
       name: 'privacy-policy',
       component: PrivacyPolicyPage,
+    },
+    {
+      path: '/terms-of-use',
+      name: 'terms-of-use',
+      component: TermsOfUsePage,
     },
     {
       path: '/faqs',
