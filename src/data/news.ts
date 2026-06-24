@@ -1,4 +1,9 @@
-export type NewsCategory = 'Top Stories' | 'Campus' | 'Opportunities' | 'Technology' | 'Community'
+export type NewsCategory = string
+
+export interface NewsDisplayImage {
+  url: string
+  alt: string
+}
 
 export interface NewsCard {
   id: number
@@ -12,6 +17,7 @@ export interface NewsCard {
   readTime: string
   imageUrl: string
   imageAlt: string
+  images?: NewsDisplayImage[]
   size: 'feature' | 'horizontal' | 'square'
   accent: 'blue' | 'orange' | 'green' | 'violet' | 'rose'
 }

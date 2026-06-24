@@ -8,6 +8,8 @@ defineProps<{
   categories: NewsCategory[]
   products: string[]
   activeCategory: NewsCategory | 'All'
+  isLoading?: boolean
+  isLoadingMore?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -106,7 +108,24 @@ const productColorByName: Record<string, string> = {
         </button>
       </div>
 
-      <div class="news-grid mt-14">
+      <div v-if="isLoading" class="news-grid mt-14">
+        <div
+          v-for="item in 10"
+          :key="`news-skeleton-${item}`"
+          class="news-card overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm"
+          :class="item === 1 || item === 10 ? 'news-card-horizontal' : 'news-card-square'"
+        >
+          <div class="h-[52%] animate-pulse bg-gray-200"></div>
+          <div class="space-y-3 p-4">
+            <div class="h-4 w-4/5 animate-pulse rounded bg-gray-200"></div>
+            <div class="h-4 w-3/5 animate-pulse rounded bg-gray-200"></div>
+            <div class="h-3 w-full animate-pulse rounded bg-gray-100"></div>
+            <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="news-grid mt-14">
         <RouterLink
           v-for="item in newsItems"
           :key="item.id"
@@ -127,6 +146,12 @@ const productColorByName: Record<string, string> = {
                 :class="accentClassByColor[item.accent]"
               >
                 {{ item.category }}
+              </div>
+              <div
+                v-if="(item.images?.length ?? 0) > 1"
+                class="absolute right-3 top-3 rounded-md bg-slate-950/80 px-2.5 py-1 text-[10px] font-bold text-white"
+              >
+                +{{ (item.images?.length ?? 1) - 1 }}
               </div>
             </div>
 
@@ -162,6 +187,12 @@ const productColorByName: Record<string, string> = {
             >
               {{ item.category }}
             </div>
+            <div
+              v-if="(item.images?.length ?? 0) > 1"
+              class="absolute right-4 top-4 rounded-md bg-slate-950/80 px-3 py-1 text-xs font-bold text-white"
+            >
+              +{{ (item.images?.length ?? 1) - 1 }}
+            </div>
 
             <div class="absolute inset-x-0 bottom-0 space-y-3 p-4 sm:p-5">
               <h2
@@ -186,6 +217,21 @@ const productColorByName: Record<string, string> = {
             </div>
           </template>
         </RouterLink>
+      </div>
+
+      <div v-if="isLoadingMore" class="news-grid mt-4">
+        <div
+          v-for="item in 4"
+          :key="`news-more-skeleton-${item}`"
+          class="news-card news-card-square overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm"
+        >
+          <div class="h-[52%] animate-pulse bg-gray-200"></div>
+          <div class="space-y-3 p-4">
+            <div class="h-4 w-4/5 animate-pulse rounded bg-gray-200"></div>
+            <div class="h-3 w-full animate-pulse rounded bg-gray-100"></div>
+            <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>

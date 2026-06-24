@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import NewsSection from '@/components/NewsSection.vue'
+import { useNewsList } from '@/composables/useNewsList'
 import { usePageMeta } from '@/composables/usePageMeta'
-import { newsCategories, newsItems, newsroomProducts, type NewsCategory } from '@/data/news'
+import { newsroomProducts } from '@/data/news'
 
 usePageMeta({
   title: 'News - LinkSkool Opportunities and Stories',
@@ -17,15 +16,15 @@ usePageMeta({
   type: 'website',
 })
 
-const activeCategory = ref<NewsCategory | 'All'>('All')
-
-const filteredNewsItems = computed(() => {
-  if (activeCategory.value === 'All') {
-    return newsItems
-  }
-
-  return newsItems.filter((item) => item.category === activeCategory.value)
-})
+const {
+  activeCategory,
+  categories,
+  filteredNewsItems,
+  isInitialLoading,
+  isLoadingMore,
+  loadError,
+  loadMoreTarget,
+} = useNewsList()
 </script>
 
 <template>
@@ -33,11 +32,17 @@ const filteredNewsItems = computed(() => {
     <AppHeader />
     <NewsSection
       :news-items="filteredNewsItems"
-      :categories="newsCategories"
+      :categories="categories"
       :products="newsroomProducts"
       :active-category="activeCategory"
+      :is-loading="isInitialLoading"
+      :is-loading-more="isLoadingMore"
       @category-change="activeCategory = $event"
     />
+    <div ref="loadMoreTarget" class="h-1"></div>
+    <p v-if="loadError" class="px-4 pb-10 text-center text-sm font-semibold text-red-600">
+      {{ loadError }}
+    </p>
     <AppFooter />
   </div>
 </template>
