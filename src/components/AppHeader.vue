@@ -29,6 +29,9 @@ const toggleMobileMenu = () => {
                     <RouterLink to="/#programs" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
                         Programs
                     </RouterLink>
+                    <RouterLink to="/news" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+                        News
+                    </RouterLink>
                     <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
                         About
                     </a>
@@ -65,6 +68,10 @@ const toggleMobileMenu = () => {
                     <RouterLink to="/#programs" @click="toggleMobileMenu"
                         class="text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">
                         Programs
+                    </RouterLink>
+                    <RouterLink to="/news" @click="toggleMobileMenu"
+                        class="text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">
+                        News
                     </RouterLink>
                     <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">
                         About

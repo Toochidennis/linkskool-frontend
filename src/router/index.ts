@@ -11,6 +11,8 @@ import PrivacyPolicyPage from '@/views/PrivacyPolicyPage.vue'
 import ReservationCompletionPage from '@/views/ReservationCompletionPage.vue'
 import ResetPasswordPage from '@/views/ResetPasswordPage.vue'
 import TermsOfUsePage from '@/views/TermsOfUsePage.vue'
+import NewsPage from '@/views/NewsPage.vue'
+import NewsDetailPage from '@/views/NewsDetailPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -57,6 +59,20 @@ const router = createRouter({
       path: '/faqs',
       name: 'faqs',
       component: FaqsPage,
+    },
+    {
+      path: '/news',
+      name: 'news',
+      component: NewsPage,
+    },
+    {
+      path: '/news/:slug',
+      name: 'news-detail',
+      component: NewsDetailPage,
+    },
+    {
+      path: '/updates',
+      redirect: '/news',
     },
     {
       path: '/payment/completion',
