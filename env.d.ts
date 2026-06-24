@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_GOOGLE_ADSENSE_NEWS_DETAIL_HERO_SLOT?: string
   readonly VITE_GOOGLE_ADSENSE_NEWS_DETAIL_TOP_SLOT?: string
   readonly VITE_GOOGLE_ADSENSE_NEWS_DETAIL_SLOT?: string
+  readonly VITE_GOOGLE_ADSENSE_NEWS_DETAIL_BOTTOM_SLOT?: string
 }
 
 interface ImportMeta {

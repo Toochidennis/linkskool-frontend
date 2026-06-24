@@ -32,12 +32,12 @@ const toggleMobileMenu = () => {
                     <RouterLink to="/news" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
                         News
                     </RouterLink>
-                    <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+                    <RouterLink to="/about" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
                         About
-                    </a>
-                    <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+                    </RouterLink>
+                    <RouterLink to="/contact" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
                         Contact
-                    </a>
+                    </RouterLink>
 
                     <button
                         class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium cursor-pointer">
@@ -73,12 +73,14 @@ const toggleMobileMenu = () => {
                         class="text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">
                         News
                     </RouterLink>
-                    <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">
+                    <RouterLink to="/about" @click="toggleMobileMenu"
+                        class="text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">
                         About
-                    </a>
-                    <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">
+                    </RouterLink>
+                    <RouterLink to="/contact" @click="toggleMobileMenu"
+                        class="text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">
                         Contact
-                    </a>
+                    </RouterLink>
                     <button
                         class="mt-2 w-full px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium cursor-pointer">
                         Get Started

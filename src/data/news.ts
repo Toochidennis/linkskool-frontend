@@ -11,6 +11,7 @@ export interface NewsCard {
   title: string
   summary: string
   body: string[]
+  contentHtml?: string
   category: NewsCategory
   source: string
   publishedAt: string
@@ -21,15 +22,6 @@ export interface NewsCard {
   size: 'feature' | 'horizontal' | 'square'
   accent: 'blue' | 'orange' | 'green' | 'violet' | 'rose'
 }
-
-export const newsroomProducts = [
-  'Programs',
-  'Courses',
-  'Career Lab',
-  'Mentorship',
-  'Workshops',
-  'Community',
-]
 
 export const newsCategories: NewsCategory[] = [
   'Top Stories',

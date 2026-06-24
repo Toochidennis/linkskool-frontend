@@ -8,7 +8,6 @@ import type { NewsCard, NewsCategory } from '@/data/news'
 defineProps<{
   newsItems: NewsCard[]
   categories: NewsCategory[]
-  products: string[]
   activeCategory: NewsCategory | 'All'
   isLoading?: boolean
   isLoadingMore?: boolean
@@ -32,58 +31,13 @@ const accentClassByColor: Record<NewsCard['accent'], string> = {
   rose: 'from-rose-500 to-orange-400',
 }
 
-const productIconByName: Record<string, string> = {
-  Programs: 'fa-solid fa-layer-group',
-  Courses: 'fa-solid fa-book-open',
-  'Career Lab': 'fa-solid fa-briefcase',
-  Mentorship: 'fa-solid fa-user-group',
-  Workshops: 'fa-solid fa-chalkboard-user',
-  Community: 'fa-solid fa-people-group',
-}
-
-const productColorByName: Record<string, string> = {
-  Programs: 'text-blue-600 bg-blue-50',
-  Courses: 'text-orange-600 bg-orange-50',
-  'Career Lab': 'text-emerald-600 bg-emerald-50',
-  Mentorship: 'text-violet-600 bg-violet-50',
-  Workshops: 'text-rose-600 bg-rose-50',
-  Community: 'text-cyan-600 bg-cyan-50',
-}
-
 const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
 </script>
 
 <template>
   <section class="relative overflow-hidden bg-gray-50 pt-28 pb-20 text-slate-950">
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div>
-        <div class="flex flex-wrap justify-center gap-3">
-          <div
-            v-for="product in products"
-            :key="product"
-            class="flex w-20 flex-col items-center gap-2"
-          >
-            <button
-              type="button"
-              class="flex h-14 w-14 items-center justify-center rounded-md border border-gray-200 bg-white shadow-sm transition hover:border-blue-200 hover:bg-blue-50 cursor-pointer"
-              :aria-label="product"
-              :title="product"
-            >
-              <span
-                class="flex h-8 w-8 items-center justify-center rounded-md"
-                :class="productColorByName[product] ?? 'bg-gray-100 text-slate-600'"
-              >
-                <i :class="productIconByName[product] ?? 'fa-solid fa-circle-dot'"></i>
-              </span>
-            </button>
-            <span class="max-w-full text-center text-[11px] font-semibold leading-tight text-slate-700">
-              {{ product }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <AdSenseSlot class="mt-8" :slot="adsenseConfig.slots.newsTop" />
+      <AdSenseSlot :slot="adsenseConfig.slots.newsTop" />
 
       <div class="mt-8 flex flex-wrap justify-center gap-3 border-t border-gray-200 pt-6">
         <button
@@ -185,7 +139,7 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
                 class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 loading="lazy"
               />
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent"></div>
+              <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950/90 via-slate-950/55 to-transparent"></div>
               <div
                 class="absolute left-4 top-4 rounded-md bg-gradient-to-r px-3 py-1 text-xs font-bold uppercase tracking-wide text-white"
                 :class="accentClassByColor[item.accent]"
@@ -206,12 +160,6 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
                 >
                   {{ item.title }}
                 </h2>
-                <p
-                  class="line-clamp-2 text-sm leading-6 text-slate-200"
-                  :class="{ 'sm:text-base': item.size === 'feature' }"
-                >
-                  {{ item.summary }}
-                </p>
 
                 <span
                   class="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-blue-100 cursor-pointer"

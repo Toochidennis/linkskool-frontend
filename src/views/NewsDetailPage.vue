@@ -82,7 +82,12 @@ usePageMeta(() => ({
             <NewsImageCarousel :images="articleImages" />
             <AdSenseSlot class="mt-8" :slot="adsenseConfig.slots.newsDetailTop" />
 
-            <div class="mt-8 space-y-5 border-t border-gray-200 pt-8">
+            <div
+              v-if="article.contentHtml"
+              class="news-content mt-8 border-t border-gray-200 pt-8 text-base leading-8 text-slate-700"
+              v-html="article.contentHtml"
+            ></div>
+            <div v-else class="mt-8 space-y-5 border-t border-gray-200 pt-8">
               <p v-for="paragraph in article.body" :key="paragraph" class="text-base leading-8 text-slate-700">
                 {{ paragraph }}
               </p>
@@ -108,6 +113,7 @@ usePageMeta(() => ({
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 class="mb-6 text-2xl font-black text-slate-950">More for you</h2>
           <NewsList :news-items="relatedNews" />
+          <AdSenseSlot class="mt-10" :slot="adsenseConfig.slots.newsDetailBottom" />
         </div>
       </section>
     </main>
@@ -115,3 +121,35 @@ usePageMeta(() => ({
     <AppFooter />
   </div>
 </template>
+
+<style scoped>
+.news-content :deep(p) {
+  margin-bottom: 1.25rem;
+}
+
+.news-content :deep(a) {
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.news-content :deep(ul),
+.news-content :deep(ol) {
+  margin: 1rem 0 1.25rem 1.25rem;
+}
+
+.news-content :deep(ul) {
+  list-style: disc;
+}
+
+.news-content :deep(ol) {
+  list-style: decimal;
+}
+
+.news-content :deep(strong),
+.news-content :deep(b) {
+  color: #0f172a;
+  font-weight: 800;
+}
+</style>

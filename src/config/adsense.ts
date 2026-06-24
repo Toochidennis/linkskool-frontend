@@ -7,6 +7,7 @@ export const adsenseConfig = {
     newsDetailHero: (import.meta.env.VITE_GOOGLE_ADSENSE_NEWS_DETAIL_HERO_SLOT as string | undefined)?.trim() ?? '',
     newsDetailTop: (import.meta.env.VITE_GOOGLE_ADSENSE_NEWS_DETAIL_TOP_SLOT as string | undefined)?.trim() ?? '',
     newsDetail: (import.meta.env.VITE_GOOGLE_ADSENSE_NEWS_DETAIL_SLOT as string | undefined)?.trim() ?? '',
+    newsDetailBottom: (import.meta.env.VITE_GOOGLE_ADSENSE_NEWS_DETAIL_BOTTOM_SLOT as string | undefined)?.trim() ?? '',
   },
 }
 

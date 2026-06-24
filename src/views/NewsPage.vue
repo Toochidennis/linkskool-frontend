@@ -4,7 +4,6 @@ import AppHeader from '@/components/AppHeader.vue'
 import NewsSection from '@/components/NewsSection.vue'
 import { useNewsList } from '@/composables/useNewsList'
 import { usePageMeta } from '@/composables/usePageMeta'
-import { newsroomProducts } from '@/data/news'
 
 usePageMeta({
   title: 'News - LinkSkool Opportunities and Stories',
@@ -33,7 +32,6 @@ const {
     <NewsSection
       :news-items="filteredNewsItems"
       :categories="categories"
-      :products="newsroomProducts"
       :active-category="activeCategory"
       :is-loading="isInitialLoading"
       :is-loading-more="isLoadingMore"

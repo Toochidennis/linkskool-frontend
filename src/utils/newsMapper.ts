@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify'
+
 import type { ApiNewsItem, ApiRelatedNewsItem } from '@/api/models/news'
 import type { NewsCard } from '@/data/news'
 
@@ -49,6 +51,110 @@ const buildSummary = (content: string) => {
   }
 
   return `${firstParagraph.slice(0, 177).trimEnd()}...`
+}
+
+const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
+const splitTrailingPunctuation = (value: string) => {
+  const match = value.match(/^(.+?)([.,;:!?)]*)$/)
+  return {
+    url: match?.[1] ?? value,
+    trailing: match?.[2] ?? '',
+  }
+}
+
+const linkifyPlainText = (value: string) =>
+  escapeHtml(value).replace(urlPattern, (match) => {
+    const { url, trailing } = splitTrailingPunctuation(match)
+    const href = url.startsWith('http') ? url : `https://${url}`
+
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>${trailing}`
+  })
+
+const linkifyHtml = (html: string) => {
+  if (typeof document === 'undefined') {
+    return html
+  }
+
+  const template = document.createElement('template')
+  template.innerHTML = html
+  const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_TEXT)
+  const textNodes: Text[] = []
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode as Text
+    const parent = node.parentElement
+
+    if (!parent || ['A', 'SCRIPT', 'STYLE'].includes(parent.tagName)) {
+      continue
+    }
+
+    if (urlPattern.test(node.data)) {
+      textNodes.push(node)
+    }
+    urlPattern.lastIndex = 0
+  }
+
+  textNodes.forEach((node) => {
+    const fragment = document.createDocumentFragment()
+    let lastIndex = 0
+
+    node.data.replace(urlPattern, (match, _value, offset: number) => {
+      if (offset > lastIndex) {
+        fragment.append(document.createTextNode(node.data.slice(lastIndex, offset)))
+      }
+
+      const { url, trailing } = splitTrailingPunctuation(match)
+      const href = url.startsWith('http') ? url : `https://${url}`
+      const link = document.createElement('a')
+      link.href = href
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+      link.textContent = url
+      fragment.append(link)
+
+      if (trailing) {
+        fragment.append(document.createTextNode(trailing))
+      }
+
+      lastIndex = offset + match.length
+      return match
+    })
+
+    if (lastIndex < node.data.length) {
+      fragment.append(document.createTextNode(node.data.slice(lastIndex)))
+    }
+
+    node.replaceWith(fragment)
+    urlPattern.lastIndex = 0
+  })
+
+  return template.innerHTML
+}
+
+const buildContentHtml = (content: string) => {
+  const decodedContent = decodeText(content)
+  const htmlContent = /<\/?[a-z][\s\S]*>/i.test(decodedContent)
+    ? decodedContent
+    : decodedContent
+        .split(/\n{2,}/)
+        .map((paragraph) => `<p>${linkifyPlainText(paragraph.trim()).replace(/\n/g, '<br>')}</p>`)
+        .join('')
+
+  const sanitizedHtml = DOMPurify.sanitize(htmlContent, {
+    USE_PROFILES: { html: true },
+    ADD_ATTR: ['target', 'rel'],
+  })
+
+  return linkifyHtml(sanitizedHtml)
 }
 
 const resolveCategory = (item: ApiNewsItem, category?: string): NewsCard['category'] => {
@@ -103,6 +209,7 @@ export const mapApiNewsToCard = (item: ApiNewsItem, index: number, category?: st
     title: decodeText(item.title),
     summary: buildSummary(item.content),
     body: buildBody(item.content),
+    contentHtml: buildContentHtml(item.content),
     category: resolveCategory(item, category),
     source: item.authorName,
     publishedAt: item.datePosted,
@@ -126,6 +233,7 @@ export const mapApiRelatedNewsToCard = (item: ApiRelatedNewsItem, index: number)
     title,
     summary: '',
     body: [],
+    contentHtml: '',
     category: 'More',
     source: item.authorName,
     publishedAt: item.datePosted,

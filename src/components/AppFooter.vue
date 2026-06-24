@@ -116,8 +116,13 @@ onMounted(async () => {
         <div>
           <h3 class="text-white font-semibold mb-4">Company</h3>
           <ul class="space-y-3">
-            <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+            <li>
+              <RouterLink to="/about" class="hover:text-white transition-colors">About Us</RouterLink>
+            </li>
             <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+            <li>
+              <RouterLink to="/contact" class="hover:text-white transition-colors">Contact</RouterLink>
+            </li>
             <li>
               <RouterLink to="/privacy-policy" class="hover:text-white transition-colors">Privacy Policy
               </RouterLink>
