@@ -1,5 +1,5 @@
 import { apiRequest } from "../client";
-import type { ApiNewsItem, GetNewsOptions, NewsListPayload } from "../models/news";
+import type { GetNewsOptions, NewsDetailPayload, NewsListPayload } from "../models/news";
 
 export const newsService = {
     async getAllNews(options: GetNewsOptions = {}) {
@@ -22,7 +22,7 @@ export const newsService = {
         return response.data;
     },
     async getNewsBySlug(slug: string, signal?: AbortSignal) {
-        const response = await apiRequest<ApiNewsItem>(`news/slug/${slug}`, {
+        const response = await apiRequest<NewsDetailPayload>(`news/slug/${slug}`, {
             method: "GET",
             signal: signal,
         });

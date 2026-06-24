@@ -22,7 +22,28 @@ export interface ApiNewsItem {
   notifiedAt: string | null
   notifiedBy: number | null
   slug: string
+  categories?: NewsCategory[]
   readTime: number
+}
+
+export interface NewsCategory {
+  id: number
+  name: string
+  createdAt: string
+}
+
+export interface ApiRelatedNewsItem {
+  id: number
+  slug: string
+  title: string
+  images: NewsImage[]
+  datePosted: string
+  authorName: string
+}
+
+export interface NewsDetailPayload {
+  news: ApiNewsItem
+  more: ApiRelatedNewsItem[]
 }
 
 export interface NewsListMeta {

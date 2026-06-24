@@ -1,4 +1,4 @@
-import type { ApiNewsItem } from '@/api/models/news'
+import type { ApiNewsItem, ApiRelatedNewsItem } from '@/api/models/news'
 import type { NewsCard } from '@/data/news'
 
 const defaultFallbackImage =
@@ -110,6 +110,31 @@ export const mapApiNewsToCard = (item: ApiNewsItem, index: number, category?: st
     imageUrl,
     imageAlt: decodeText(item.title),
     images: images.length > 0 ? images : [{ url: imageUrl, alt: decodeText(item.title) }],
+    size: resolveSize(index),
+    accent: accentByIndex[index % accentByIndex.length] ?? 'blue',
+  }
+}
+
+export const mapApiRelatedNewsToCard = (item: ApiRelatedNewsItem, index: number): NewsCard => {
+  const imageUrl =
+    item.images?.[0]?.url || fallbackImages[index % fallbackImages.length] || defaultFallbackImage
+  const title = decodeText(item.title)
+
+  return {
+    id: item.id,
+    slug: item.slug,
+    title,
+    summary: '',
+    body: [],
+    category: 'More',
+    source: item.authorName,
+    publishedAt: item.datePosted,
+    readTime: '',
+    imageUrl,
+    imageAlt: title,
+    images: item.images
+      .map((image) => ({ url: image.url, alt: title }))
+      .filter((image) => Boolean(image.url)),
     size: resolveSize(index),
     accent: accentByIndex[index % accentByIndex.length] ?? 'blue',
   }

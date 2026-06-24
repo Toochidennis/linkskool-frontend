@@ -1,26 +1,8 @@
 import { computed, onBeforeUnmount, ref, watch, type Ref } from 'vue'
 
-import type { ApiNewsItem } from '@/api/models/news'
 import { newsService } from '@/api/services'
 import type { NewsCard } from '@/data/news'
-import { mapApiNewsToCard } from '@/utils/newsMapper'
-
-const extractNewsItem = (payload: unknown): ApiNewsItem | null => {
-  if (!payload || typeof payload !== 'object') {
-    return null
-  }
-
-  const record = payload as Record<string, unknown>
-  if ('id' in record && 'slug' in record) {
-    return payload as ApiNewsItem
-  }
-
-  if (record.news && typeof record.news === 'object') {
-    return record.news as ApiNewsItem
-  }
-
-  return null
-}
+import { mapApiNewsToCard, mapApiRelatedNewsToCard } from '@/utils/newsMapper'
 
 export const useNewsDetail = (slug: Ref<string>) => {
   const article = ref<NewsCard | null>(null)
@@ -36,42 +18,17 @@ export const useNewsDetail = (slug: Ref<string>) => {
     isLoadingArticle.value = true
     articleError.value = ''
     article.value = null
+    relatedNews.value = []
 
     abortController?.abort()
     abortController = new AbortController()
 
     try {
-      const [detailResponse, listResponse] = await Promise.allSettled([
-        newsService.getNewsBySlug(slug.value, abortController.signal),
-        newsService.getAllNews({ page: 1, limit: 12, signal: abortController.signal }),
-      ])
+      const response = await newsService.getNewsBySlug(slug.value, abortController.signal)
+      const category = response.news.categories?.[0]?.name
 
-      let apiArticle: ApiNewsItem | null = null
-
-      if (detailResponse.status === 'fulfilled') {
-        console.log('news detail response:', detailResponse.value)
-        apiArticle = extractNewsItem(detailResponse.value)
-      } else {
-        console.error('Failed to fetch news detail:', detailResponse.reason)
-      }
-
-      if (!apiArticle && listResponse.status === 'fulfilled') {
-        apiArticle = listResponse.value.data.news.find((item) => item.slug === slug.value) ?? null
-      }
-
-      if (!apiArticle) {
-        articleError.value = 'The story may have moved or no longer exists.'
-        return
-      }
-
-      article.value = mapApiNewsToCard(apiArticle, 0)
-
-      if (listResponse.status === 'fulfilled') {
-        relatedNews.value = listResponse.value.data.news
-          .filter((item) => item.id !== apiArticle?.id)
-          .map((item, index) => mapApiNewsToCard(item, index))
-          .slice(0, 9)
-      }
+      article.value = mapApiNewsToCard(response.news, 0, category)
+      relatedNews.value = response.more.map((item, index) => mapApiRelatedNewsToCard(item, index))
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         return
