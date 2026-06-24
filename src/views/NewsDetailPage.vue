@@ -2,10 +2,12 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
+import AdSenseSlot from '@/components/AdSenseSlot.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import NewsImageCarousel from '@/components/NewsImageCarousel.vue'
 import NewsList from '@/components/NewsList.vue'
+import { adsenseConfig } from '@/config/adsense'
 import { useNewsDetail } from '@/composables/useNewsDetail'
 import { usePageMeta } from '@/composables/usePageMeta'
 
@@ -76,13 +78,17 @@ usePageMeta(() => ({
               </div>
             </div>
 
+            <AdSenseSlot class="mt-8" :slot="adsenseConfig.slots.newsDetailHero" />
             <NewsImageCarousel :images="articleImages" />
+            <AdSenseSlot class="mt-8" :slot="adsenseConfig.slots.newsDetailTop" />
 
             <div class="mt-8 space-y-5 border-t border-gray-200 pt-8">
               <p v-for="paragraph in article.body" :key="paragraph" class="text-base leading-8 text-slate-700">
                 {{ paragraph }}
               </p>
             </div>
+
+            <AdSenseSlot class="mt-10" :slot="adsenseConfig.slots.newsDetail" />
           </article>
         </div>
       </section>

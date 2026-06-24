@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 
+import AdSenseSlot from '@/components/AdSenseSlot.vue'
+import { adsenseConfig } from '@/config/adsense'
 import type { NewsCard, NewsCategory } from '@/data/news'
 
 defineProps<{
@@ -47,6 +49,8 @@ const productColorByName: Record<string, string> = {
   Workshops: 'text-rose-600 bg-rose-50',
   Community: 'text-cyan-600 bg-cyan-50',
 }
+
+const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
 </script>
 
 <template>
@@ -78,6 +82,8 @@ const productColorByName: Record<string, string> = {
           </div>
         </div>
       </div>
+
+      <AdSenseSlot class="mt-8" :slot="adsenseConfig.slots.newsTop" />
 
       <div class="mt-8 flex flex-wrap justify-center gap-3 border-t border-gray-200 pt-6">
         <button
@@ -126,97 +132,109 @@ const productColorByName: Record<string, string> = {
       </div>
 
       <div v-else class="news-grid mt-14">
-        <RouterLink
-          v-for="item in newsItems"
-          :key="item.id"
-          :to="`/news/${item.slug}`"
-          class="news-card group relative overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm"
-          :class="cardClassBySize[item.size]"
-        >
-          <template v-if="item.size === 'square'">
-            <div class="relative h-[52%] overflow-hidden">
+        <template v-for="(item, index) in newsItems" :key="item.id">
+          <RouterLink
+            :to="`/news/${item.slug}`"
+            class="news-card group relative overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm"
+            :class="cardClassBySize[item.size]"
+          >
+            <template v-if="item.size === 'square'">
+              <div class="relative h-[52%] overflow-hidden">
+                <img
+                  :src="item.imageUrl"
+                  :alt="item.imageAlt"
+                  class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div
+                  class="absolute left-3 top-3 rounded-md bg-gradient-to-r px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white"
+                  :class="accentClassByColor[item.accent]"
+                >
+                  {{ item.category }}
+                </div>
+                <div
+                  v-if="(item.images?.length ?? 0) > 1"
+                  class="absolute right-3 top-3 rounded-md bg-slate-950/80 px-2.5 py-1 text-[10px] font-bold text-white"
+                >
+                  +{{ (item.images?.length ?? 1) - 1 }}
+                </div>
+              </div>
+
+              <div class="flex h-[48%] flex-col justify-between bg-white p-4">
+                <div class="space-y-2">
+                  <h2 class="line-clamp-2 text-base font-black leading-tight text-slate-950">
+                    {{ item.title }}
+                  </h2>
+                  <p class="line-clamp-2 text-xs leading-5 text-slate-600">
+                    {{ item.summary }}
+                  </p>
+                </div>
+                <span
+                  class="mt-2 inline-flex items-center gap-2 self-start text-xs font-bold text-blue-700 transition hover:text-blue-900 cursor-pointer"
+                >
+                  Read story
+                  <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </span>
+              </div>
+            </template>
+
+            <template v-else>
               <img
                 :src="item.imageUrl"
                 :alt="item.imageAlt"
-                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 loading="lazy"
               />
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent"></div>
               <div
-                class="absolute left-3 top-3 rounded-md bg-gradient-to-r px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white"
+                class="absolute left-4 top-4 rounded-md bg-gradient-to-r px-3 py-1 text-xs font-bold uppercase tracking-wide text-white"
                 :class="accentClassByColor[item.accent]"
               >
                 {{ item.category }}
               </div>
               <div
                 v-if="(item.images?.length ?? 0) > 1"
-                class="absolute right-3 top-3 rounded-md bg-slate-950/80 px-2.5 py-1 text-[10px] font-bold text-white"
+                class="absolute right-4 top-4 rounded-md bg-slate-950/80 px-3 py-1 text-xs font-bold text-white"
               >
                 +{{ (item.images?.length ?? 1) - 1 }}
               </div>
-            </div>
 
-            <div class="flex h-[48%] flex-col justify-between bg-white p-4">
-              <div class="space-y-2">
-                <h2 class="line-clamp-2 text-base font-black leading-tight text-slate-950">
+              <div class="absolute inset-x-0 bottom-0 space-y-3 p-4 sm:p-5">
+                <h2
+                  class="line-clamp-3 text-xl font-black leading-tight text-white"
+                  :class="{ 'sm:text-4xl': item.size === 'feature', 'sm:text-2xl': item.size === 'horizontal' }"
+                >
                   {{ item.title }}
                 </h2>
-                <p class="line-clamp-2 text-xs leading-5 text-slate-600">
+                <p
+                  class="line-clamp-2 text-sm leading-6 text-slate-200"
+                  :class="{ 'sm:text-base': item.size === 'feature' }"
+                >
                   {{ item.summary }}
                 </p>
+
+                <span
+                  class="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-blue-100 cursor-pointer"
+                >
+                  Read story
+                  <i class="fa-solid fa-arrow-right text-xs"></i>
+                </span>
               </div>
-              <span
-                class="mt-2 inline-flex items-center gap-2 self-start text-xs font-bold text-blue-700 transition hover:text-blue-900 cursor-pointer"
-              >
-                Read story
-                <i class="fa-solid fa-arrow-right text-[10px]"></i>
-              </span>
-            </div>
-          </template>
+            </template>
+          </RouterLink>
 
-          <template v-else>
-            <img
-              :src="item.imageUrl"
-              :alt="item.imageAlt"
-              class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent"></div>
-            <div
-              class="absolute left-4 top-4 rounded-md bg-gradient-to-r px-3 py-1 text-xs font-bold uppercase tracking-wide text-white"
-              :class="accentClassByColor[item.accent]"
-            >
-              {{ item.category }}
-            </div>
-            <div
-              v-if="(item.images?.length ?? 0) > 1"
-              class="absolute right-4 top-4 rounded-md bg-slate-950/80 px-3 py-1 text-xs font-bold text-white"
-            >
-              +{{ (item.images?.length ?? 1) - 1 }}
-            </div>
+          <AdSenseSlot
+            v-if="shouldShowInlineAd(index)"
+            :slot="adsenseConfig.slots.newsInline"
+            class="news-ad-card"
+          />
+        </template>
 
-            <div class="absolute inset-x-0 bottom-0 space-y-3 p-4 sm:p-5">
-              <h2
-                class="line-clamp-3 text-xl font-black leading-tight text-white"
-                :class="{ 'sm:text-4xl': item.size === 'feature', 'sm:text-2xl': item.size === 'horizontal' }"
-              >
-                {{ item.title }}
-              </h2>
-              <p
-                class="line-clamp-2 text-sm leading-6 text-slate-200"
-                :class="{ 'sm:text-base': item.size === 'feature' }"
-              >
-                {{ item.summary }}
-              </p>
-
-              <span
-                class="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-blue-100 cursor-pointer"
-              >
-                Read story
-                <i class="fa-solid fa-arrow-right text-xs"></i>
-              </span>
-            </div>
-          </template>
-        </RouterLink>
+        <AdSenseSlot
+          v-if="newsItems.length > 0"
+          :slot="adsenseConfig.slots.newsBottom"
+          class="news-ad-card"
+        />
       </div>
 
       <div v-if="isLoadingMore" class="news-grid mt-4">
@@ -248,6 +266,10 @@ const productColorByName: Record<string, string> = {
   min-height: 22rem;
 }
 
+.news-ad-card {
+  min-height: 8rem;
+}
+
 .news-grid-glow {
   filter: blur(72px);
 }
@@ -270,6 +292,10 @@ const productColorByName: Record<string, string> = {
   .news-card-feature {
     grid-column: span 2;
     aspect-ratio: 2 / 1;
+  }
+
+  .news-ad-card {
+    grid-column: 1 / -1;
   }
 }
 
