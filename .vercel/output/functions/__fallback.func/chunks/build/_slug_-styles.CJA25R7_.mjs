@@ -1,0 +1,8 @@
+const _slug__vue_vue_type_style_index_0_scoped_3a0e1df1_lang = ".news-content[data-v-3a0e1df1] p{margin-bottom:1.25rem}.news-content[data-v-3a0e1df1] a{color:#1d4ed8;font-weight:700;text-decoration:underline;text-underline-offset:3px}.news-content[data-v-3a0e1df1] ol,.news-content[data-v-3a0e1df1] ul{margin:1rem 0 1.25rem 1.25rem}.news-content[data-v-3a0e1df1] ul{list-style:disc}.news-content[data-v-3a0e1df1] ol{list-style:decimal}.news-content[data-v-3a0e1df1] b,.news-content[data-v-3a0e1df1] strong{color:#0f172a;font-weight:800}";
+
+const _slug_Styles_CJA25R7_ = [
+  _slug__vue_vue_type_style_index_0_scoped_3a0e1df1_lang
+];
+
+export { _slug_Styles_CJA25R7_ as default };
+//# sourceMappingURL=_slug_-styles.CJA25R7_.mjs.map

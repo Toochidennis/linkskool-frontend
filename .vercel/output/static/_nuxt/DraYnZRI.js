@@ -1,0 +1,1 @@
+import{c as e}from"./BsKI_K7j.js";const a=r=>r.replace(/^\/+/,""),n=r=>{const t=r?.trim();if(!t)return null;if(t.startsWith("https://")||t.startsWith("http://"))return t;const s=e.imageBaseUrl?.trim();return s?`${s}/${a(t)}`:t};export{n as r};

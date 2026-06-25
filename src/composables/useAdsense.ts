@@ -4,6 +4,18 @@ import { adsenseConfig, isAdsenseConfigured } from '@/config/adsense'
 
 let scriptLoadStarted = false
 
+type AdSenseStatus = 'pending' | 'filled' | 'unfilled'
+
+const getAdSenseStatus = (element: HTMLElement): AdSenseStatus => {
+  const status = element.getAttribute('data-ad-status')
+
+  if (status === 'filled' || status === 'unfilled') {
+    return status
+  }
+
+  return 'pending'
+}
+
 export const useAdsense = () => {
   const loadAdsenseScript = () => {
     if (!isAdsenseConfigured || scriptLoadStarted || typeof document === 'undefined') {
@@ -44,10 +56,30 @@ export const useAdsense = () => {
     }, 0)
   }
 
+  const observeAdStatus = (element: HTMLElement, callback: (status: AdSenseStatus) => void) => {
+    callback(getAdSenseStatus(element))
+
+    if (typeof MutationObserver === 'undefined') {
+      return () => {}
+    }
+
+    const observer = new MutationObserver(() => {
+      callback(getAdSenseStatus(element))
+    })
+
+    observer.observe(element, {
+      attributeFilter: ['data-ad-status'],
+      attributes: true,
+    })
+
+    return () => observer.disconnect()
+  }
+
   onMounted(loadAdsenseScript)
 
   return {
     isAdsenseConfigured,
+    observeAdStatus,
     requestAd,
   }
 }

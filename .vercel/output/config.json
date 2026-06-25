@@ -1,0 +1,102 @@
+{
+  "version": 3,
+  "overrides": {
+    "about/index.html": {
+      "path": "about"
+    },
+    "index.html": {
+      "path": ""
+    },
+    "faqs/index.html": {
+      "path": "faqs"
+    },
+    "contact/index.html": {
+      "path": "contact"
+    },
+    "privacy-policy/index.html": {
+      "path": "privacy-policy"
+    },
+    "terms-of-use/index.html": {
+      "path": "terms-of-use"
+    }
+  },
+  "routes": [
+    {
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "src": "/_nuxt/builds/meta/(.*)"
+    },
+    {
+      "headers": {
+        "cache-control": "public, max-age=1, immutable"
+      },
+      "src": "/_nuxt/builds/(.*)"
+    },
+    {
+      "status": 307,
+      "headers": {
+        "Location": "/news"
+      },
+      "src": "/updates"
+    },
+    {
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "src": "/_nuxt/(.*)"
+    },
+    {
+      "src": "/_nuxt/builds/meta(.*)",
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable"
+      },
+      "continue": true
+    },
+    {
+      "src": "/_nuxt/builds(.*)",
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable"
+      },
+      "continue": true
+    },
+    {
+      "src": "/_nuxt(.*)",
+      "headers": {
+        "cache-control": "public,max-age=31536000,immutable"
+      },
+      "continue": true
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "(?<__isr_route>/news/_payload.json)",
+      "dest": "/news/_payload.json-isr?__isr_route=$__isr_route"
+    },
+    {
+      "src": "(?<__isr_route>/sitemap.xml/_payload.json)",
+      "dest": "/sitemap.xml/_payload.json-isr?__isr_route=$__isr_route"
+    },
+    {
+      "src": "(?<__isr_route>/__nuxt_error)",
+      "dest": "/__fallback"
+    },
+    {
+      "src": "(?<__isr_route>/news)",
+      "dest": "/news-isr?__isr_route=$__isr_route"
+    },
+    {
+      "src": "(?<__isr_route>/news/(?:.*))",
+      "dest": "/news/[...]-isr?__isr_route=$__isr_route"
+    },
+    {
+      "src": "(?<__isr_route>/sitemap.xml)",
+      "dest": "/sitemap.xml-isr?__isr_route=$__isr_route"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/__fallback"
+    }
+  ]
+}
