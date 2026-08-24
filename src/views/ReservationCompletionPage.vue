@@ -191,13 +191,13 @@ const closeVideoModal = () => {
 }
 
 usePageMeta(() => ({
-  title: isEnrollmentCompletion.value ? 'Enrollment Complete | Linkskool' : 'Reservation Complete | Linkskool',
+  title: isEnrollmentCompletion.value ? 'Enrollment Complete | LinkSkool' : 'Reservation Complete | LinkSkool',
   description: isEnrollmentCompletion.value
-    ? 'Your Linkskool enrollment is complete. Follow onboarding steps to get started.'
-    : 'Your Linkskool reservation is complete. Follow onboarding steps to get started.',
+    ? 'Your LinkSkool enrollment is complete. Follow the onboarding steps to get started.'
+    : 'Your LinkSkool reservation is complete. Follow the onboarding steps to get started.',
   keywords: 'reservation completion, onboarding steps, linkskool',
   url: 'https://linkskool.com/reservation/completion',
-  image: 'https://linkskool.com/assets/og-image.png',
+  image: 'https://linkskool.com/og-image.png',
   type: 'website',
 }))
 
@@ -215,26 +215,26 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen overflow-x-hidden bg-white">
     <AppHeader />
 
-    <section class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 pt-24 pb-16">
+    <section class="border-b border-slate-200 bg-slate-50 pb-16 pt-24">
       <div class="pointer-events-none absolute -top-20 -left-20 h-72 w-72 rounded-full bg-blue-300/20 blur-2xl"></div>
       <div class="pointer-events-none absolute -bottom-24 -right-10 h-80 w-80 rounded-full bg-orange-300/20 blur-2xl">
       </div>
 
       <div class="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div
-          class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
+          class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-brand">
           <i :class="isEnrollmentCompletion ? 'fa-solid fa-circle-check' : 'fa-solid fa-bookmark'"></i>
           <span>{{ isEnrollmentCompletion ? 'Enrollment Complete' : 'Reservation Complete' }}</span>
         </div>
 
-        <h1 class="mt-6 max-w-3xl text-4xl font-black tracking-tight text-white md:text-5xl">
+        <h1 class="mt-6 max-w-3xl break-words text-3xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
           {{ isEnrollmentCompletion ? 'Thank you for your enrollment' : 'Your seat has been reserved' }}
         </h1>
 
-        <p class="mt-5 max-w-3xl text-lg leading-relaxed text-blue-100">
+        <p class="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
           {{ isEnrollmentCompletion
             ? (selectedProgram?.name
               ? `Your enrollment for ${selectedProgram.name} is confirmed. Follow these onboarding steps to get started.`
@@ -246,7 +246,7 @@ onMounted(async () => {
 
         <div class="mt-8 flex flex-wrap items-center gap-4">
           <a href="#next-steps"
-            class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-blue-700 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-xl">
+            class="btn btn-primary">
             <span>Start onboarding steps</span>
             <i class="fa-solid fa-arrow-down"></i>
           </a>
@@ -262,20 +262,20 @@ onMounted(async () => {
     <section id="next-steps" class="py-16 bg-white">
       <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="mb-10">
-          <h2 class="text-3xl font-black text-gray-900 md:text-4xl">What to do next</h2>
-          <p class="mt-2 text-gray-600">Complete these onboarding steps to begin learning smoothly.</p>
+          <h2 class="text-3xl font-semibold text-slate-900 md:text-4xl">What to do next</h2>
+          <p class="mt-2 text-slate-600">Complete these onboarding steps to begin learning smoothly.</p>
         </div>
 
         <div class="space-y-5">
-          <article class="rounded-2xl border border-blue-100 bg-blue-50/60 p-5 md:p-6">
+          <article class="rounded-2xl border border-brand-soft bg-brand-soft/60 p-5 md:p-6">
             <div class="flex items-start gap-4">
               <div
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
                 1
               </div>
               <div class="flex-1">
-                <h3 class="text-xl font-bold text-gray-900">Download the LinkSkool app</h3>
-                <p class="mt-1 text-gray-600">Install on Android or Desktop. iOS will be available soon.</p>
+                <h3 class="text-xl font-bold text-slate-900">Download the LinkSkool app</h3>
+                <p class="mt-1 text-slate-600">Install on Android or Desktop. iOS will be available soon.</p>
 
                 <div class="mt-4 flex flex-wrap gap-3">
                   <a v-if="hasAndroidAppUrl" :href="androidAppUrl" target="_blank" rel="noopener noreferrer"
@@ -284,26 +284,26 @@ onMounted(async () => {
                     <span>Android (Play Store)</span>
                   </a>
                   <button v-else type="button" disabled
-                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-5 py-3 font-semibold text-gray-500"
+                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-5 py-3 font-semibold text-slate-500"
                     aria-disabled="true">
                     <i class="fa-brands fa-google-play"></i>
                     <span>Android (Unavailable)</span>
                   </button>
 
                   <a v-if="hasDesktopAppUrl" :href="desktopAppUrl" target="_blank" rel="noopener noreferrer"
-                    class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-800 transition-colors hover:border-blue-300 hover:text-blue-700">
+                    class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-800 transition-colors hover:border-brand-light/50 hover:text-brand">
                     <img :src="logoSrc" alt="LinkSkool" class="h-5 w-5 object-contain" />
                     <span>Desktop App</span>
                   </a>
                   <button v-else type="button" disabled
-                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-5 py-3 font-semibold text-gray-500"
+                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-5 py-3 font-semibold text-slate-500"
                     aria-disabled="true">
                     <img :src="logoSrc" alt="LinkSkool" class="h-5 w-5 object-contain opacity-50" />
                     <span>Desktop (Unavailable)</span>
                   </button>
 
                   <button type="button" disabled
-                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-5 py-3 font-semibold text-gray-500"
+                    class="inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-5 py-3 font-semibold text-slate-500"
                     :title="iosAppUrl ? 'iOS app coming soon' : 'iOS app not available yet'" aria-disabled="true">
                     <i class="fa-brands fa-apple"></i>
                     <span>iOS (Coming soon)</span>
@@ -320,8 +320,8 @@ onMounted(async () => {
                 2
               </div>
               <div class="flex-1">
-                <h3 class="text-xl font-bold text-gray-900">Join the WhatsApp group</h3>
-                <p class="mt-1 text-gray-600">Receive onboarding updates, class reminders, and direct support.</p>
+                <h3 class="text-xl font-bold text-slate-900">Join the WhatsApp group</h3>
+                <p class="mt-1 text-slate-600">Receive onboarding updates, class reminders, and direct support.</p>
                 <a :href="whatsappJoinLink" target="_blank" rel="noopener noreferrer"
                   class="mt-4 inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-3 font-semibold text-white transition-colors hover:bg-green-600">
                   <i class="fa-brands fa-whatsapp"></i>
@@ -340,8 +340,8 @@ onMounted(async () => {
                     {{ videoStepNumber }}
                   </div>
                   <div>
-                    <h3 class="text-xl font-bold text-gray-900">Watch onboarding video</h3>
-                    <p class="mt-1 text-gray-600">Get a quick walkthrough before your first class.</p>
+                    <h3 class="text-xl font-bold text-slate-900">Watch onboarding video</h3>
+                    <p class="mt-1 text-slate-600">Get a quick walkthrough before your first class.</p>
                   </div>
                 </div>
                 <button type="button" @click="openVideoModal"
@@ -365,16 +365,16 @@ onMounted(async () => {
           </article>
 
           <article v-for="(step, index) in parsedAdditionalOnboardingSteps" :key="`${index}-${step.text}`"
-            class="rounded-2xl border border-gray-200 bg-white p-5 md:p-6">
+            class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
             <div class="flex items-start gap-4">
               <div
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-bold text-white">
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">
                 {{ remainingStepsStartNumber + index }}
               </div>
-              <div class="flex-1 pt-1 text-gray-700 leading-relaxed">
+              <div class="flex-1 pt-1 text-slate-700 leading-relaxed">
                 <template v-for="(segment, segmentIndex) in step.segments" :key="`${segment.kind}-${segmentIndex}`">
                   <a v-if="segment.kind === 'link' && segment.href" :href="segment.href" target="_blank"
-                    rel="noopener noreferrer" class="font-semibold text-blue-700 underline decoration-blue-300">
+                    rel="noopener noreferrer" class="font-semibold text-brand underline decoration-blue-300">
                     {{ segment.content }}
                   </a>
                   <span v-else>{{ segment.content }}</span>
@@ -390,8 +390,8 @@ onMounted(async () => {
                 {{ faqStepNumber }}
               </div>
               <div class="flex-1">
-                <h3 class="text-xl font-bold text-gray-900">Need more guidance?</h3>
-                <p class="mt-1 text-gray-600">Check the FAQs for additional help and common answers.</p>
+                <h3 class="text-xl font-bold text-slate-900">Need more guidance?</h3>
+                <p class="mt-1 text-slate-600">Check the FAQs for additional help and common answers.</p>
                 <RouterLink to="/faqs"
                   class="mt-4 inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-white px-5 py-3 font-semibold text-violet-700 transition-colors hover:bg-violet-100">
                   <i class="fa-solid fa-circle-question"></i>
@@ -405,10 +405,10 @@ onMounted(async () => {
     </section>
 
     <div v-if="showVideoModal && programVideoEmbedUrl"
-      class="fixed inset-0 z-[70] flex items-center justify-center bg-gray-950/80 p-4" @click.self="closeVideoModal">
+      class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4" @click.self="closeVideoModal">
       <div class="relative w-full max-w-4xl overflow-hidden rounded-2xl bg-black shadow-2xl">
         <button type="button" @click="closeVideoModal"
-          class="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-900 transition-colors hover:bg-white"
+          class="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-900 transition-colors hover:bg-white"
           aria-label="Close video modal">
           <i class="fa-solid fa-xmark"></i>
         </button>

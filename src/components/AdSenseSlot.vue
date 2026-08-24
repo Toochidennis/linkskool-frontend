@@ -50,10 +50,10 @@ onBeforeUnmount(() => {
 <template>
   <aside
     v-if="canRenderAd"
-    class="ad-slot rounded-md border border-dashed border-gray-200 bg-white/80 p-3"
+    class="ad-slot rounded-md border border-dashed border-slate-200 bg-white/80 p-3"
     :class="{ 'ad-slot--empty': !hasFilledAd }"
   >
-    <p v-if="hasFilledAd" class="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-gray-400">
+    <p v-if="hasFilledAd" class="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-slate-400">
       {{ label }}
     </p>
 

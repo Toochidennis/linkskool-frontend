@@ -8,6 +8,9 @@ body {
   overflow-x: hidden;
   background: var(--theme-bg);
   color: var(--theme-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 #app {
@@ -16,6 +19,12 @@ body {
 }
 
 @theme {
+  /* Brand (matches the LinkSkool mark) */
+  --color-brand: #1b3a9e;
+  --color-brand-ink: #14286e;
+  --color-brand-soft: #eef2fd;
+  --color-brand-light: #4f76d8;
+
   /* Primary Blue Palette */
   --color-primary: #1e40af;
   --color-primary-light: #3b82f6;
@@ -199,5 +208,211 @@ input[type='number'] {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Design primitives — shared across every page.
+   Keep new UI on these rather than re-deriving colours/radii inline.
+   ══════════════════════════════════════════════════════════════════════ */
+@layer components {
+  /* ── entrance motion ─────────────────────────────────────────────── */
+  .rise {
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .rise-1 { animation-delay: 60ms; }
+  .rise-2 { animation-delay: 120ms; }
+  .rise-3 { animation-delay: 180ms; }
+  .rise-4 { animation-delay: 240ms; }
+  .rise-5 { animation-delay: 300ms; }
+
+  /* ── section eyebrow ─────────────────────────────────────────────── */
+  .eyebrow {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--color-brand);
+  }
+  .eyebrow-on-dark {
+    color: #a8bcf0;
+  }
+
+  /* ── buttons ─────────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    border-radius: 9999px;
+    padding: 1rem 1.75rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.15;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  .btn-sm {
+    padding: 0.6875rem 1.25rem;
+    font-size: 0.875rem;
+  }
+  .btn-block {
+    width: 100%;
+  }
+
+  .btn-primary {
+    background-color: var(--color-brand);
+    color: #fff;
+    box-shadow: 0 10px 30px -12px rgba(27, 58, 158, 0.85);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--color-brand-ink);
+    box-shadow: 0 14px 34px -12px rgba(27, 58, 158, 0.9);
+  }
+  .btn-primary:disabled {
+    background-color: #e2e8f0;
+    color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background-color: #fff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+  }
+
+  .btn-ghost {
+    color: #334155;
+    padding-inline: 1.25rem;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--color-brand);
+  }
+
+  /* on dark surfaces */
+  .btn-light {
+    background-color: #fff;
+    color: var(--color-brand-ink);
+  }
+  .btn-light:hover:not(:disabled) {
+    background-color: var(--color-brand-soft);
+  }
+  .btn-outline-light {
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+  }
+  .btn-outline-light:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+  .btn-outline-light:focus-visible {
+    outline-color: #fff;
+  }
+
+  /* ── surfaces ────────────────────────────────────────────────────── */
+  .card {
+    border-radius: 24px;
+    border: 1px solid rgb(226 232 240 / 0.8);
+    background-color: #fff;
+  }
+  .card-lift {
+    transition:
+      transform 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px);
+    border-color: #cbd5e1;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 18px 40px -24px rgba(15, 23, 42, 0.3);
+  }
+  .card-raised {
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 12px 24px -12px rgba(15, 23, 42, 0.1),
+      0 44px 80px -40px rgba(15, 23, 42, 0.28);
+  }
+
+  /* glass panel for dark sections */
+  .card-glass {
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background-color: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+  }
+
+  /* ── form fields ─────────────────────────────────────────────────── */
+  .field-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+  }
+  .field {
+    margin-top: 0.5rem;
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background-color: #fff;
+    padding: 0.8125rem 1rem;
+    font-size: 0.9375rem;
+    color: #0f172a;
+    outline: none;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .field::placeholder {
+    color: #94a3b8;
+  }
+  .field:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 4px var(--color-brand-soft);
+  }
+  .field-invalid {
+    border-color: #fca5a5;
+  }
+  .field-invalid:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 4px #fee2e2;
+  }
+  .field-hint {
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #dc2626;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
   }
 }

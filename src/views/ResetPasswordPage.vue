@@ -60,14 +60,14 @@ const goToAppLogin = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen overflow-x-hidden bg-slate-50">
     <AppHeader />
 
     <!-- Hero banner -->
-    <section class="pt-24 pb-12 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600">
+    <section class="border-b border-slate-200 bg-white pb-10 pt-24">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold text-white mb-3">Reset Your Password</h1>
-        <p class="text-lg text-blue-100 max-w-xl mx-auto">
+        <h1 class="mb-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Reset your password</h1>
+        <p class="mx-auto max-w-xl text-lg text-slate-600">
           Choose a strong new password to secure your account.
         </p>
       </div>
@@ -78,46 +78,46 @@ const goToAppLogin = () => {
       <div class="max-w-md mx-auto">
 
         <!-- Success -->
-        <div v-if="success" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+        <div v-if="success" class="rounded-2xl border border-slate-200 bg-white p-6 text-center sm:p-8">
           <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <i class="fa-solid fa-shield-halved text-green-600 text-2xl"></i>
           </div>
-          <h2 class="text-xl font-bold text-gray-900 mb-2">Password updated!</h2>
-          <p class="text-gray-600 mb-8">
+          <h2 class="text-xl font-bold text-slate-900 mb-2">Password updated!</h2>
+          <p class="text-slate-600 mb-8">
             Your password has been reset successfully. You can now log in with your new password.
           </p>
           <button
-            class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+            class="btn btn-primary btn-block"
             @click="goToAppLogin">
             Open App to Login
           </button>
         </div>
 
         <!-- Form -->
-        <div v-else class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div v-else class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-8">
           <div class="text-center mb-8">
-            <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <i class="fa-solid fa-lock-open text-blue-600 text-xl"></i>
+            <div class="w-14 h-14 bg-brand-soft rounded-xl flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-lock-open text-brand text-xl"></i>
             </div>
-            <h2 class="text-2xl font-bold text-gray-900">Set a new password</h2>
-            <p class="text-gray-500 mt-1 text-sm">Enter and confirm your new password below.</p>
+            <h2 class="text-2xl font-bold text-slate-900">Set a new password</h2>
+            <p class="text-slate-500 mt-1 text-sm">Enter and confirm your new password below.</p>
           </div>
 
           <form @submit.prevent="submit" novalidate>
             <!-- New password -->
             <div class="mb-5">
-              <label class="block text-sm font-medium text-gray-700 mb-1.5" for="new-password">
+              <label class="block text-sm font-medium text-slate-700 mb-1.5" for="new-password">
                 New password
               </label>
               <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                   <i class="fa-solid fa-lock text-sm"></i>
                 </span>
                 <input id="new-password" v-model="newPassword" :type="showNewPassword ? 'text' : 'password'"
                   autocomplete="new-password" placeholder="Min. 8 characters"
-                  class="w-full pl-10 pr-11 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 transition" />
+                  class="w-full pl-10 pr-11 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-light focus:border-transparent text-slate-900 placeholder-slate-400 transition" />
                 <button type="button"
-                  class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 cursor-pointer"
                   @click="showNewPassword = !showNewPassword">
                   <i :class="showNewPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'" class="text-sm"></i>
                 </button>
@@ -126,18 +126,18 @@ const goToAppLogin = () => {
 
             <!-- Confirm password -->
             <div class="mb-6">
-              <label class="block text-sm font-medium text-gray-700 mb-1.5" for="confirm-password">
+              <label class="block text-sm font-medium text-slate-700 mb-1.5" for="confirm-password">
                 Confirm password
               </label>
               <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                   <i class="fa-solid fa-lock text-sm"></i>
                 </span>
                 <input id="confirm-password" v-model="confirmPassword" :type="showConfirmPassword ? 'text' : 'password'"
                   autocomplete="new-password" placeholder="Repeat your password"
-                  class="w-full pl-10 pr-11 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 transition" />
+                  class="w-full pl-10 pr-11 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-light focus:border-transparent text-slate-900 placeholder-slate-400 transition" />
                 <button type="button"
-                  class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 cursor-pointer"
                   @click="showConfirmPassword = !showConfirmPassword">
                   <i :class="showConfirmPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'" class="text-sm"></i>
                 </button>
@@ -151,7 +151,7 @@ const goToAppLogin = () => {
             </p>
 
             <button type="submit" :disabled="loading"
-              class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100">
+              class="btn btn-primary btn-block">
               <span v-if="loading" class="flex items-center justify-center gap-2">
                 <i class="fa-solid fa-circle-notch animate-spin"></i>
                 Resetting…

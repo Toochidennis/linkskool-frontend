@@ -5,7 +5,7 @@ export const contactChannels = [
     icon: 'fa-solid fa-life-ring',
     href: 'mailto:support@linkskool.com',
     action: 'support@linkskool.com',
-    accent: 'text-blue-600 bg-blue-50',
+    accent: 'text-brand bg-brand-soft',
   },
   {
     title: 'Partnerships',

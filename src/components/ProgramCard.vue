@@ -1,50 +1,47 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { Program } from '@/api/models'
 import { resolveAssetUrl } from '@/api/util/assetUrl'
 
-const props = defineProps<{
-  program: Program
-}>()
+const props = defineProps<{ program: Program }>()
 
-const displayImageUrl = computed(() => resolveAssetUrl(props.program.imageUrl))
+const hasImageError = ref(false)
+const displayImageUrl = computed(() => (hasImageError.value ? '' : resolveAssetUrl(props.program.imageUrl)))
 </script>
 
 <template>
-  <RouterLink :to="`/programs/${program.slug}`"
-    class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-blue-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-    <!-- Image Container -->
-    <div class="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-blue-50 to-orange-50">
-      <img v-if="displayImageUrl" :src="displayImageUrl" :alt="program.name" loading="lazy"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-      <div v-else class="w-full h-full flex items-center justify-center">
-        <i class="fa-solid fa-graduation-cap text-6xl text-blue-300"></i>
+  <RouterLink :to="`/programs/${program.slug}`" class="card card-lift group flex flex-col overflow-hidden">
+    <div class="relative aspect-[16/10] overflow-hidden bg-brand-soft">
+      <img
+        v-if="displayImageUrl"
+        :src="displayImageUrl"
+        :alt="program.name"
+        loading="lazy"
+        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+        @error="hasImageError = true"
+      />
+      <div v-else class="flex h-full w-full items-center justify-center">
+        <i class="fa-solid fa-graduation-cap text-4xl text-brand/25"></i>
       </div>
 
-      <!-- Course Count Badge -->
-      <div class="absolute top-4 right-4 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-full shadow-lg">
-        <span class="text-sm font-semibold text-gray-700">
-          {{ program.courseCount }} courses
-        </span>
-      </div>
+      <span class="absolute right-3 top-3 rounded-full bg-white/92 px-3 py-1.5 text-xs font-semibold text-slate-700 backdrop-blur">
+        {{ program.courseCount }} courses
+      </span>
     </div>
 
-    <!-- Content -->
-    <div class="p-6">
-      <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
+    <div class="flex flex-1 flex-col p-6">
+      <h3 class="line-clamp-2 text-lg font-semibold leading-snug tracking-tight text-slate-950 transition-colors group-hover:text-brand">
         {{ program.name }}
       </h3>
-
-      <p class="text-gray-600 line-clamp-2 mb-4 leading-relaxed">
+      <p class="mt-2.5 line-clamp-2 text-[15px] leading-6 text-slate-600">
         {{ program.description }}
       </p>
 
-      <!-- CTA -->
-      <div class="flex items-center text-blue-600 font-semibold group-hover:gap-2 transition-all">
-        <span>Explore Program</span>
-        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-      </div>
+      <span class="mt-auto flex items-center gap-2 pt-6 text-sm font-semibold text-brand">
+        Explore program
+        <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+      </span>
     </div>
   </RouterLink>
 </template>

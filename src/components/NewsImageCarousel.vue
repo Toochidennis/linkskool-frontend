@@ -38,7 +38,7 @@ watch(
 
 <template>
   <div v-if="activeImage" class="mt-8">
-    <div class="relative h-[22rem] overflow-hidden rounded-md bg-gray-100 md:h-[30rem]">
+    <div class="relative h-[22rem] overflow-hidden rounded-md bg-slate-100 md:h-[30rem]">
       <img :src="activeImage.url" :alt="activeImage.alt" class="h-full w-full object-cover" />
 
       <template v-if="hasMultipleImages">
