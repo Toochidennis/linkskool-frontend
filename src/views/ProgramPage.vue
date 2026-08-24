@@ -141,15 +141,15 @@ onMounted(() => {
           </p>
         </div>
 
-        <div v-if="isLoading" class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div v-for="i in 6" :key="i" class="h-80 animate-pulse rounded-[24px] bg-slate-100"></div>
+        <div v-if="isLoading" class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div v-for="i in 6" :key="i" class="h-80 animate-pulse rounded-[14px] bg-slate-100"></div>
         </div>
 
-        <div v-else-if="courses.length > 0" class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div v-else-if="courses.length > 0" class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <CourseCard v-for="course in courses" :key="course.courseId" :course="course" />
         </div>
 
-        <div v-else class="mt-12 rounded-[24px] border border-dashed border-slate-300 px-6 py-16 text-center">
+        <div v-else class="mt-12 rounded-[14px] border border-dashed border-slate-300 px-6 py-16 text-center">
           <i class="fa-solid fa-book-open text-3xl text-slate-300"></i>
           <p class="mt-4 text-slate-600">{{ loadError || 'No courses available yet.' }}</p>
         </div>
@@ -157,7 +157,7 @@ onMounted(() => {
     </section>
 
     <section class="px-4 pb-20 sm:px-6 sm:pb-24 lg:px-8">
-      <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-7 rounded-[32px] bg-slate-50 px-7 py-10 sm:px-12 sm:py-12 lg:flex-row lg:items-center">
+      <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-7 rounded-[22px] bg-slate-50 px-7 py-10 sm:px-12 sm:py-12 lg:flex-row lg:items-center">
         <div class="max-w-xl">
           <h2 class="text-[1.6rem] font-semibold leading-tight tracking-[-0.025em] text-slate-950 sm:text-3xl">
             Looking for something else?

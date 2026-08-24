@@ -89,7 +89,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <div v-else-if="loadError" class="rounded-[24px] border border-red-100 bg-red-50 px-6 py-8 text-center">
+          <div v-else-if="loadError" class="rounded-[14px] border border-red-100 bg-red-50 px-6 py-8 text-center">
             <i class="fa-solid fa-circle-exclamation text-2xl text-red-500"></i>
             <p class="mt-3 text-red-700">{{ loadError }}</p>
             <button type="button" @click="fetchFaqs"
@@ -132,7 +132,7 @@ onMounted(() => {
             </article>
           </div>
 
-          <div v-else class="rounded-[24px] border border-dashed border-slate-300 px-6 py-14 text-center">
+          <div v-else class="rounded-[14px] border border-dashed border-slate-300 px-6 py-14 text-center">
             <i class="fa-solid fa-comments text-3xl text-slate-300"></i>
             <p class="mt-4 text-slate-600">No FAQs are available yet. Please check back soon.</p>
           </div>

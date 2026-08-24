@@ -14,7 +14,7 @@ defineProps<{
       v-for="item in newsItems"
       :key="item.id"
       :to="`/news/${item.slug}`"
-      class="card card-lift group grid grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-[20px]"
+      class="card card-lift group grid grid-cols-[7rem_minmax(0,1fr)] overflow-hidden rounded-[14px]"
     >
       <img :src="item.imageUrl" :alt="item.imageAlt" class="h-full min-h-32 w-full object-cover" loading="lazy" />
       <div class="flex min-w-0 flex-col justify-between p-4">

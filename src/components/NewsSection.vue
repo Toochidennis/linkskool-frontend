@@ -64,7 +64,7 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
         <div
           v-for="item in 10"
           :key="`news-skeleton-${item}`"
-          class="news-card overflow-hidden rounded-[20px] border border-slate-200/80 bg-white"
+          class="news-card overflow-hidden rounded-[14px] border border-slate-200/80 bg-white"
           :class="item === 1 || item === 10 ? 'news-card-horizontal' : 'news-card-square'"
         >
           <div class="h-[52%] animate-pulse bg-slate-200"></div>
@@ -81,7 +81,7 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
         <template v-for="(item, index) in newsItems" :key="item.id">
           <RouterLink
             :to="`/news/${item.slug}`"
-            class="news-card card-lift group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white"
+            class="news-card card-lift group relative overflow-hidden rounded-[14px] border border-slate-200/80 bg-white"
             :class="cardClassBySize[item.size]"
           >
             <template v-if="item.size === 'square'">
@@ -179,7 +179,7 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
         <div
           v-for="item in 4"
           :key="`news-more-skeleton-${item}`"
-          class="news-card news-card-square overflow-hidden rounded-[20px] border border-slate-200/80 bg-white"
+          class="news-card news-card-square overflow-hidden rounded-[14px] border border-slate-200/80 bg-white"
         >
           <div class="h-[52%] animate-pulse bg-slate-200"></div>
           <div class="space-y-3 p-4">

@@ -9,11 +9,15 @@ const props = defineProps<{
 }>()
 
 const displayImageUrl = computed(() => resolveAssetUrl(props.course.imageUrl))
-const nairaFormatter = new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    maximumFractionDigits: 2,
-})
+const nairaFormatter = {
+    format: (value: number) =>
+        new Intl.NumberFormat('en-NG', {
+            style: 'currency',
+            currency: 'NGN',
+            minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+            maximumFractionDigits: 2,
+        }).format(value),
+}
 
 const cohort = computed(() => props.course.cohort)
 const isFreeCourse = computed(() => cohort.value?.isFree ?? false)
@@ -76,12 +80,12 @@ const trialBadge = computed(() => {
             </div>
 
             <div v-if="trialBadge"
-                class="absolute left-3 top-3 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
+                class="absolute left-3 top-3 rounded-full bg-slate-950/85 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
                 {{ trialBadge }}
             </div>
 
             <div v-if="typeof displayPrice === 'object' && displayPrice.discount"
-                class="absolute right-3 top-3 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">
+                class="absolute right-3 top-3 rounded-full bg-orange px-2.5 py-1 text-[11px] font-semibold text-white">
                 {{ displayPrice.discount }}
             </div>
         </div>
@@ -96,21 +100,18 @@ const trialBadge = computed(() => {
                 {{ course.description }}
             </p>
 
-            <div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
-                <div v-if="typeof displayPrice === 'string'" class="text-xl font-semibold tracking-tight text-slate-950">
-                    <span :class="isFreeCourse ? 'text-emerald-600' : ''">{{ displayPrice }}</span>
+            <div class="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                <div v-if="typeof displayPrice === 'string'" class="min-w-0 truncate text-lg font-semibold tracking-tight text-slate-950">
+                    <span :class="isFreeCourse ? 'text-brand' : ''">{{ displayPrice }}</span>
                 </div>
-                <div v-else class="flex flex-col">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl font-semibold tracking-tight text-slate-950">{{ displayPrice.current }}</span>
-                        <span class="text-sm text-slate-400 line-through">{{ displayPrice.original }}</span>
-                    </div>
+                <div v-else class="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                    <span class="text-lg font-semibold tracking-tight text-slate-950">{{ displayPrice.current }}</span>
+                    <span class="text-xs text-slate-400 line-through">{{ displayPrice.original }}</span>
                 </div>
 
-                <div class="flex items-center gap-1.5 text-sm font-semibold text-brand">
-                    <span>View</span>
-                    <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
-                </div>
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition group-hover:border-brand group-hover:bg-brand group-hover:text-white">
+                    <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                </span>
             </div>
         </div>
     </RouterLink>

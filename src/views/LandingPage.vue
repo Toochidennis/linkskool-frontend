@@ -85,7 +85,7 @@ const platformCapabilities = [
               </p>
             </div>
 
-            <div class="mt-12 grid gap-px overflow-hidden rounded-[24px] border border-slate-200/80 bg-slate-200/80 md:grid-cols-3 lg:mt-14">
+            <div class="mt-12 grid gap-px overflow-hidden rounded-[14px] border border-slate-200/80 bg-slate-200/80 md:grid-cols-3 lg:mt-14">
               <article
                 v-for="capability in platformCapabilities"
                 :key="capability.title"
@@ -121,14 +121,14 @@ const platformCapabilities = [
           </div>
 
           <div v-if="isLoading" class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div v-for="i in 8" :key="i" class="h-80 animate-pulse rounded-[24px] bg-slate-200/70"></div>
+            <div v-for="i in 8" :key="i" class="h-80 animate-pulse rounded-[14px] bg-slate-200/70"></div>
           </div>
           <div v-else-if="programs.length" class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <ProgramCard v-for="program in programs" :key="program.id" :program="program" />
           </div>
           <div
             v-else
-            class="mt-12 rounded-[24px] border border-dashed border-slate-300 bg-white px-6 py-14 text-center text-slate-600"
+            class="mt-12 rounded-[14px] border border-dashed border-slate-300 bg-white px-6 py-14 text-center text-slate-600"
           >
             Programs will appear here shortly.
           </div>
@@ -139,7 +139,7 @@ const platformCapabilities = [
 
       <!-- Two doors: resolves the school / learner split -->
       <section class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
-        <div class="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] bg-brand px-6 py-14 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+        <div class="relative mx-auto max-w-7xl overflow-hidden rounded-[22px] bg-brand px-6 py-14 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
           <div class="cta-glow" aria-hidden="true"></div>
 
           <div class="relative">

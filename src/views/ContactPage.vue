@@ -74,7 +74,7 @@ const { errors, form, submit } = useContactForm()
               </dl>
             </div>
 
-            <div class="rounded-[24px] border border-brand/12 bg-brand-soft p-7">
+            <div class="rounded-[14px] border border-brand/12 bg-brand-soft p-7">
               <h2 class="text-base font-semibold tracking-tight text-slate-950">Before you write</h2>
               <p class="mt-2 text-sm leading-6 text-slate-600">
                 Include your program name, payment reference, or cohort details when relevant.

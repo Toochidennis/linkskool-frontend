@@ -44,7 +44,7 @@ const platforms = computed(() => [
             </span>
           </a>
 
-          <div v-else class="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/60 p-6">
+          <div v-else class="rounded-[14px] border border-dashed border-slate-300 bg-slate-50/60 p-6">
             <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-200/80 text-slate-500">
               <i :class="[platform.icon, 'text-lg']"></i>
             </span>

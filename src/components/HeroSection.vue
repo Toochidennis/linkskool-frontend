@@ -92,7 +92,7 @@ const metrics = [
 
         <!-- ── product surface ─────────────────────────────────── -->
         <div class="rise rise-2 relative mx-auto w-full max-w-[30rem] lg:mx-0 lg:max-w-none" aria-hidden="true">
-          <div class="card-raised relative rounded-[26px] border border-slate-200/80 bg-white/95 backdrop-blur">
+          <div class="card-raised relative rounded-[16px] border border-slate-200/80 bg-white/95 backdrop-blur">
             <!-- chrome -->
             <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
               <div class="flex items-center gap-2.5">
