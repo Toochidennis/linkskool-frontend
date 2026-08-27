@@ -19,7 +19,7 @@ const { share, status } = useWebShare()
     class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border font-semibold transition"
     :class="
       variant === 'detail'
-        ? 'border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 hover:border-brand hover:text-brand'
+        ? 'border-brand bg-brand px-5 py-3 text-sm text-white shadow-sm shadow-blue-900/20 hover:border-brand-ink hover:bg-brand-ink'
         : 'h-9 w-9 border-white/30 bg-slate-950/65 text-white backdrop-blur hover:border-white hover:bg-white hover:text-brand'
     "
     :aria-label="status === 'copied' ? 'Link copied' : 'Share this story'"

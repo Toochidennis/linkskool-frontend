@@ -7,7 +7,7 @@ import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import NewsImageCarousel from '@/components/NewsImageCarousel.vue'
 import NewsList from '@/components/NewsList.vue'
-import ShareButton from '@/components/ShareButton.vue'
+import SocialShareCluster from '@/components/SocialShareCluster.vue'
 import { adsenseConfig } from '@/config/adsense'
 import { useNewsDetail } from '@/composables/useNewsDetail'
 import { usePageMeta } from '@/composables/usePageMeta'
@@ -77,7 +77,7 @@ usePageMeta(() => ({
                 <span class="h-1 w-1 rounded-full bg-slate-300"></span>
                 <span>{{ article.readTime }}</span>
               </div>
-              <ShareButton :share-data="article.share" variant="detail" />
+              <SocialShareCluster :share-data="article.share" button-first />
             </div>
 
             <AdSenseSlot class="mt-8" :slot="adsenseConfig.slots.newsDetailHero" />
@@ -100,7 +100,7 @@ usePageMeta(() => ({
                 <p class="font-semibold text-slate-950">Found this story useful?</p>
                 <p class="mt-1 text-sm text-slate-500">Share it with someone who may benefit.</p>
               </div>
-              <ShareButton :share-data="article.share" variant="detail" />
+              <SocialShareCluster :share-data="article.share" />
             </div>
 
             <AdSenseSlot class="mt-10" :slot="adsenseConfig.slots.newsDetail" />

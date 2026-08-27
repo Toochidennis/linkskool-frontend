@@ -11,8 +11,8 @@ export const contactChannels = [
     title: 'Partnerships',
     description: 'Workshops, institutional programs, media, and business collaborations.',
     icon: 'fa-solid fa-handshake',
-    href: 'mailto:info@linkskool.com',
-    action: 'info@linkskool.com',
+    href: 'mailto:partnership@linkskool.com',
+    action: 'partnership@linkskool.com',
     accent: 'text-orange-600 bg-orange-50',
   },
   {
