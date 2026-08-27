@@ -2,16 +2,17 @@
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import NewsSection from '@/components/NewsSection.vue'
+import PageHero from '@/components/PageHero.vue'
 import { useNewsList } from '@/composables/useNewsList'
 import { usePageMeta } from '@/composables/usePageMeta'
 
 usePageMeta({
   title: 'News - LinkSkool Opportunities and Stories',
   description:
-    'Read LinkSkool news, program announcements, opportunities, career insights, technology notes, and community stories in a masonry-style feed.',
+    'Program announcements, scholarship and career opportunities, and stories from the LinkSkool community.',
   keywords: 'LinkSkool news, education news, opportunities, career insights, learning community',
   url: 'https://linkskool.com/news',
-  image: 'https://linkskool.com/assets/og-image.png',
+  image: 'https://linkskool.com/og-image.png',
   type: 'website',
 })
 
@@ -27,8 +28,13 @@ const {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-950">
+  <div class="min-h-screen bg-white">
     <AppHeader />
+    <PageHero
+      eyebrow="Newsroom"
+      title="Opportunities, announcements and stories."
+      subtitle="Program news, scholarship and career opportunities, and notes from the LinkSkool community."
+    />
     <NewsSection
       :news-items="filteredNewsItems"
       :categories="categories"

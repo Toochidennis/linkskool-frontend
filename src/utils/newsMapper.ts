@@ -217,6 +217,11 @@ export const mapApiNewsToCard = (item: ApiNewsItem, index: number, category?: st
     imageUrl,
     imageAlt: decodeText(item.title),
     images: images.length > 0 ? images : [{ url: imageUrl, alt: decodeText(item.title) }],
+    share: {
+      url: item.share?.url || `https://linkskool.com/news/${item.slug}`,
+      title: decodeText(item.share?.title || item.title),
+      text: decodeText(item.share?.description || buildSummary(item.content)),
+    },
     size: resolveSize(index),
     accent: accentByIndex[index % accentByIndex.length] ?? 'blue',
   }
@@ -243,6 +248,11 @@ export const mapApiRelatedNewsToCard = (item: ApiRelatedNewsItem, index: number)
     images: item.images
       .map((image) => ({ url: image.url, alt: title }))
       .filter((image) => Boolean(image.url)),
+    share: {
+      url: `https://linkskool.com/news/${item.slug}`,
+      title,
+      text: title,
+    },
     size: resolveSize(index),
     accent: accentByIndex[index % accentByIndex.length] ?? 'blue',
   }

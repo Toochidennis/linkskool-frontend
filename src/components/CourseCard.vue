@@ -9,11 +9,15 @@ const props = defineProps<{
 }>()
 
 const displayImageUrl = computed(() => resolveAssetUrl(props.course.imageUrl))
-const nairaFormatter = new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    maximumFractionDigits: 2,
-})
+const nairaFormatter = {
+    format: (value: number) =>
+        new Intl.NumberFormat('en-NG', {
+            style: 'currency',
+            currency: 'NGN',
+            minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+            maximumFractionDigits: 2,
+        }).format(value),
+}
 
 const cohort = computed(() => props.course.cohort)
 const isFreeCourse = computed(() => cohort.value?.isFree ?? false)
@@ -67,50 +71,47 @@ const trialBadge = computed(() => {
 
 <template>
     <RouterLink :to="courseDetailsRoute"
-        class="group block bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-blue-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-        <div class="relative aspect-video overflow-hidden bg-gradient-to-br from-blue-50 to-orange-50">
+        class="card card-lift group flex flex-col overflow-hidden">
+        <div class="relative aspect-video overflow-hidden bg-brand-soft">
             <img v-if="displayImageUrl" :src="displayImageUrl" :alt="course.courseName" loading="lazy"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div v-else class="w-full h-full flex items-center justify-center">
-                <i class="fa-solid fa-book text-5xl text-blue-300"></i>
+                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+            <div v-else class="flex h-full w-full items-center justify-center">
+                <i class="fa-solid fa-book text-4xl text-brand/25"></i>
             </div>
 
             <div v-if="trialBadge"
-                class="absolute top-3 left-3 px-3 py-1 bg-orange-500 text-white text-xs font-semibold rounded-full shadow-lg">
+                class="absolute left-3 top-3 rounded-full bg-slate-950/85 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
                 {{ trialBadge }}
             </div>
 
             <div v-if="typeof displayPrice === 'object' && displayPrice.discount"
-                class="absolute top-3 right-3 px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full shadow-lg">
+                class="absolute right-3 top-3 rounded-full bg-orange px-2.5 py-1 text-[11px] font-semibold text-white">
                 {{ displayPrice.discount }}
             </div>
         </div>
 
-        <div class="p-5">
+        <div class="flex flex-1 flex-col p-5">
             <h3
-                class="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
+                class="line-clamp-2 text-lg font-semibold leading-snug tracking-tight text-slate-950 transition-colors group-hover:text-brand">
                 {{ course.courseName }}
             </h3>
 
-            <p class="text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed">
+            <p class="mb-6 mt-2.5 line-clamp-2 text-[15px] leading-6 text-slate-600">
                 {{ course.description }}
             </p>
 
-            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                <div v-if="typeof displayPrice === 'string'" class="text-xl font-bold text-gray-900">
-                    <span :class="isFreeCourse ? 'text-green-600' : ''">{{ displayPrice }}</span>
+            <div class="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                <div v-if="typeof displayPrice === 'string'" class="min-w-0 truncate text-lg font-semibold tracking-tight text-slate-950">
+                    <span :class="isFreeCourse ? 'text-brand' : ''">{{ displayPrice }}</span>
                 </div>
-                <div v-else class="flex flex-col">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl font-bold text-gray-900">{{ displayPrice.current }}</span>
-                        <span class="text-sm text-gray-400 line-through">{{ displayPrice.original }}</span>
-                    </div>
+                <div v-else class="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                    <span class="text-lg font-semibold tracking-tight text-slate-950">{{ displayPrice.current }}</span>
+                    <span class="text-xs text-slate-400 line-through">{{ displayPrice.original }}</span>
                 </div>
 
-                <div class="flex items-center text-blue-600 font-semibold text-sm group-hover:gap-1 transition-all">
-                    <span>View</span>
-                    <i class="fa-solid fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform text-xs"></i>
-                </div>
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition group-hover:border-brand group-hover:bg-brand group-hover:text-white">
+                    <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                </span>
             </div>
         </div>
     </RouterLink>

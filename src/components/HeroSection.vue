@@ -1,207 +1,155 @@
 <script setup lang="ts">
 import logoSrc from '@/assets/logo.png'
+import AmbientBackdrop from '@/components/AmbientBackdrop.vue'
+import { siteLinks } from '@/config/site'
 
-const androidAppUrl = import.meta.env.VITE_LINKSKOOL_ANDROID_APP_URL
-const desktopAppUrl = import.meta.env.VITE_LINKSKOOL_DESKTOP_APP_URL
+const scrollTo = (id: string) =>
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
-const scrollToPrograms = () => {
-    const element = document.getElementById('programs')
-    if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-}
+/**
+ * Flow is the umbrella product — LearnFlow and TeachFlow live inside it,
+ * so it appears here as one pillar, not as two siblings of CBT.
+ */
+const pillars = [
+  { label: 'Flow', detail: 'Teaching & learning', href: '#flow' },
+  { label: 'CBT', detail: 'Exams & practice' },
+  { label: 'Records', detail: 'Results & admin' },
+  { label: 'Insights', detail: 'Performance data' },
+]
+
+const metrics = [
+  { label: 'Average score', value: '82%' },
+  { label: 'Attendance', value: '96%' },
+  { label: 'Lessons done', value: '48' },
+]
 </script>
 
 <template>
-    <section
-        class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-orange-50">
-        <!-- Animated Background Elements -->
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
-            <div
-                class="absolute top-20 left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob">
-            </div>
-            <div
-                class="absolute top-40 right-10 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000">
-            </div>
-            <div
-                class="absolute -bottom-8 left-1/2 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000">
-            </div>
+  <section class="hero relative isolate overflow-hidden bg-white pt-16">
+    <AmbientBackdrop />
+
+    <div class="relative mx-auto max-w-7xl px-4 pb-24 pt-16 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8 lg:pb-28 lg:pt-24">
+      <div class="grid items-center gap-12 sm:gap-16 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14">
+        <!-- ── message ─────────────────────────────────────────── -->
+        <div class="max-w-[36rem] xl:max-w-[43rem]">
+          <p class="rise inline-flex items-center gap-2.5 rounded-full border border-slate-200/90 bg-white/70 py-1.5 pl-2.5 pr-4 text-[13px] font-medium text-slate-600 backdrop-blur">
+            <span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
+            Education infrastructure for Africa
+          </p>
+
+          <h1 class="rise rise-1 mt-7 text-pretty text-[2.6rem] font-semibold leading-[1.05] tracking-[-0.035em] text-slate-950 sm:text-[3.5rem] lg:text-[3.25rem] xl:text-[3.85rem]">
+            Run your whole school on
+            <span class="relative whitespace-nowrap">
+              one platform.
+              <svg class="absolute -bottom-0.5 left-0 h-[0.3em] w-full text-orange sm:-bottom-1" viewBox="0 0 240 14" fill="none" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M1 11.4C62 5.6 172 2.4 239 5.1 173 7.6 63 10.9 1 11.4Z" fill="currentColor" />
+              </svg>
+            </span>
+          </h1>
+
+          <p class="rise rise-2 mt-7 max-w-xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">
+            Lessons, CBT exams, academic records and performance insights — connected in a single
+            system for students, teachers and administrators.
+          </p>
+
+          <div class="rise rise-3 mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <a
+              :href="siteLinks.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-primary group"
+            >
+              Open LinkSkool
+              <i class="fa-solid fa-arrow-up-right-from-square text-[11px] transition-transform group-hover:-translate-y-px group-hover:translate-x-px"></i>
+            </a>
+            <button
+              type="button"
+              @click="scrollTo('programs')"
+              class="btn btn-ghost group"
+            >
+              Explore programs
+              <i class="fa-solid fa-arrow-down text-[11px] text-slate-400 transition group-hover:translate-y-0.5 group-hover:text-brand"></i>
+            </button>
+          </div>
+
+          <ul class="rise rise-4 mt-11 grid grid-cols-2 sm:mt-14 gap-y-6 border-t border-slate-200/80 pt-7 sm:grid-cols-4 sm:gap-x-2">
+            <li v-for="pillar in pillars" :key="pillar.label" class="sm:border-l sm:border-slate-200/80 sm:first:border-l-0 sm:pl-5 sm:first:pl-0">
+              <component
+                :is="pillar.href ? 'a' : 'div'"
+                :href="pillar.href"
+                class="group/pillar block"
+                :class="pillar.href && 'transition hover:text-brand'"
+              >
+                <p class="flex items-center gap-1.5 text-[15px] font-semibold tracking-tight text-slate-900" :class="pillar.href && 'group-hover/pillar:text-brand'">
+                  {{ pillar.label }}
+                  <i v-if="pillar.href" class="fa-solid fa-arrow-down text-[10px] text-slate-400 transition group-hover/pillar:translate-y-0.5 group-hover/pillar:text-brand"></i>
+                </p>
+                <p class="mt-1 text-[13px] text-slate-500">{{ pillar.detail }}</p>
+              </component>
+            </li>
+          </ul>
         </div>
 
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <!-- Left Content -->
-                <div class="text-center lg:text-left space-y-8">
-                    <!-- Badge -->
-                    <div
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-blue-100 shadow-sm">
-                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        <span class="text-sm font-medium text-gray-700">Transform Your Future with Learning</span>
-                    </div>
+        <!-- ── product surface ─────────────────────────────────── -->
+        <div class="rise rise-2 relative mx-auto w-full max-w-[30rem] lg:mx-0 lg:max-w-none" aria-hidden="true">
+          <div class="card-raised relative rounded-[16px] border border-slate-200/80 bg-white/95 backdrop-blur">
+            <!-- chrome -->
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+              <div class="flex items-center gap-2.5">
+                <img :src="logoSrc" alt="" class="h-6 w-6 object-contain" />
+                <span class="text-[15px] font-semibold tracking-tight"><span class="text-brand">Link</span><span class="text-orange">Skool</span></span>
+              </div>
+              <span class="text-xs font-medium text-slate-400">Second term · SS2</span>
+            </div>
 
-                    <!-- Main Heading -->
-                    <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-                        <span class="text-gray-900">Unlock Your</span>
-                        <br />
-                        <span
-                            class="bg-gradient-to-r from-blue-600 via-blue-700 to-orange-500 bg-clip-text text-transparent">
-                            Potential
-                        </span>
-                    </h1>
-
-                    <!-- Subtitle -->
-                    <p class="text-xl text-gray-600 max-w-2xl leading-relaxed">
-                        Learn from industry experts through carefully crafted programs. Build skills that matter,
-                        at your own pace, with hands-on projects and real-world applications.
-                    </p>
-
-                    <!-- CTA Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                        <button @click="scrollToPrograms"
-                            class="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer">
-                            <span>Browse Programs</span>
-                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                        </button>
-
-                        <button
-                            class="px-8 py-4 bg-white text-gray-700 rounded-xl font-semibold border-2 border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer">
-                            Watch Demo
-                        </button>
-                    </div>
-
-                    <!-- App Download Links -->
-                    <div class="pt-2">
-                        <p class="text-sm font-semibold text-gray-700 mb-3">Download the LinkSkool app</p>
-                        <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center lg:justify-start">
-                            <a :href="androidAppUrl" target="_blank" rel="noopener noreferrer"
-                                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 hover:shadow-lg transition-all duration-200">
-                                <i class="fa-brands fa-google-play"></i>
-                                <span>Android</span>
-                            </a>
-
-                            <a :href="desktopAppUrl" target="_blank" rel="noopener noreferrer"
-                                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-gray-800 font-semibold border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200">
-                                <img :src="logoSrc" alt="LinkSkool" class="w-5 h-5 object-contain" />
-                                <span>Desktop App</span>
-                            </a>
-
-                            <button type="button" disabled
-                                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-100 text-gray-500 font-semibold border border-gray-200 cursor-not-allowed"
-                                aria-disabled="true" title="iOS app coming soon">
-                                <i class="fa-brands fa-apple"></i>
-                                <span>iOS (Coming soon)</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Stats -->
-                    <div class="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200">
-                        <div class="text-center lg:text-left">
-                            <div class="text-3xl font-bold text-gray-900">50K+</div>
-                            <div class="text-sm text-gray-600 mt-1">Students</div>
-                        </div>
-                        <div class="text-center lg:text-left">
-                            <div class="text-3xl font-bold text-gray-900">200+</div>
-                            <div class="text-sm text-gray-600 mt-1">Courses</div>
-                        </div>
-                        <div class="text-center lg:text-left">
-                            <div class="text-3xl font-bold text-gray-900">98%</div>
-                            <div class="text-sm text-gray-600 mt-1">Satisfaction</div>
-                        </div>
-                    </div>
+            <!-- focal block -->
+            <div class="px-6 pb-9 pt-7 sm:px-7 sm:pb-10">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">Continue learning</p>
+              <div class="mt-4 flex items-center gap-6">
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-2xl font-semibold tracking-tight text-slate-950">Mathematics</p>
+                  <p class="mt-1.5 text-sm text-slate-500">Algebra · Lesson 9 of 12</p>
                 </div>
-
-                <!-- Right Illustration -->
-                <div class="relative hidden lg:block">
-                    <div class="relative z-10">
-                        <!-- Main Illustration Card -->
-                        <div
-                            class="bg-white rounded-2xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-500">
-                            <div
-                                class="aspect-square bg-gradient-to-br from-blue-100 via-blue-50 to-orange-50 rounded-xl flex items-center justify-center">
-                                <i class="fa-solid fa-graduation-cap text-9xl text-blue-600 opacity-80"></i>
-                            </div>
-                        </div>
-
-                        <!-- Floating Cards -->
-                        <div class="absolute -top-6 -right-6 bg-white rounded-xl shadow-xl p-4 animate-float">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <i class="fa-solid fa-check text-green-600 text-xl"></i>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-semibold text-gray-900">Course Complete</div>
-                                    <div class="text-xs text-gray-500">+100 XP earned</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            class="absolute -bottom-6 -left-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-xl p-4 text-white animate-float animation-delay-2000">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                                    <i class="fa-solid fa-trophy text-xl"></i>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-semibold">Top Learner</div>
-                                    <div class="text-xs opacity-90">This Week</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="relative h-[70px] w-[70px] shrink-0">
+                  <svg viewBox="0 0 70 70" class="h-full w-full -rotate-90">
+                    <circle cx="35" cy="35" r="30" fill="none" stroke="#E8EDF7" stroke-width="6" />
+                    <circle cx="35" cy="35" r="30" fill="none" stroke="currentColor" class="text-brand" stroke-width="6" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="50.9" />
+                  </svg>
+                  <span class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-slate-900">73%</span>
                 </div>
-            </div>
-        </div>
+              </div>
 
-        <!-- Scroll Indicator -->
-        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-            <i class="fa-solid fa-chevron-down text-gray-400 text-2xl"></i>
+              <!-- hairline metrics, no boxes -->
+              <dl class="mt-8 grid grid-cols-3 border-t border-slate-100 pt-6">
+                <div v-for="metric in metrics" :key="metric.label" class="border-l border-slate-100 pl-4 first:border-l-0 first:pl-0">
+                  <dd class="text-xl font-semibold tracking-tight text-slate-900">{{ metric.value }}</dd>
+                  <dt class="mt-1 text-[12px] text-slate-500">{{ metric.label }}</dt>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <!-- one floating element instead of a crowded interior -->
+          <div class="hero-float absolute -bottom-11 -left-2 flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/95 py-3.5 pl-3.5 pr-5 backdrop-blur sm:-left-9">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange/10 text-orange">
+              <i class="fa-solid fa-clipboard-check text-sm"></i>
+            </span>
+            <div>
+              <p class="text-[13px] font-semibold text-slate-900">CBT practice ready</p>
+              <p class="mt-0.5 text-[12px] text-slate-500">Physics · 20 questions</p>
+            </div>
+          </div>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
 </template>
 
 <style scoped>
-@keyframes blob {
-
-    0%,
-    100% {
-        transform: translate(0, 0) scale(1);
-    }
-
-    33% {
-        transform: translate(30px, -50px) scale(1.1);
-    }
-
-    66% {
-        transform: translate(-20px, 20px) scale(0.9);
-    }
+.hero-float {
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.04),
+    0 18px 40px -18px rgba(15, 23, 42, 0.24);
 }
 
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-20px);
-    }
-}
-
-.animate-blob {
-    animation: blob 7s infinite;
-}
-
-.animate-float {
-    animation: float 3s ease-in-out infinite;
-}
-
-.animation-delay-2000 {
-    animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-    animation-delay: 4s;
-}
 </style>

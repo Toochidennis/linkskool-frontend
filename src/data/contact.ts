@@ -5,14 +5,14 @@ export const contactChannels = [
     icon: 'fa-solid fa-life-ring',
     href: 'mailto:support@linkskool.com',
     action: 'support@linkskool.com',
-    accent: 'text-blue-600 bg-blue-50',
+    accent: 'text-brand bg-brand-soft',
   },
   {
     title: 'Partnerships',
     description: 'Workshops, institutional programs, media, and business collaborations.',
     icon: 'fa-solid fa-handshake',
-    href: 'mailto:info@linkskool.com',
-    action: 'info@linkskool.com',
+    href: 'mailto:partnership@linkskool.com',
+    action: 'partnership@linkskool.com',
     accent: 'text-orange-600 bg-orange-50',
   },
   {

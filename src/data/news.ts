@@ -5,6 +5,12 @@ export interface NewsDisplayImage {
   alt: string
 }
 
+export interface NewsShareData {
+  url: string
+  title: string
+  text: string
+}
+
 export interface NewsCard {
   id: number
   slug: string
@@ -19,6 +25,7 @@ export interface NewsCard {
   imageUrl: string
   imageAlt: string
   images?: NewsDisplayImage[]
+  share: NewsShareData
   size: 'feature' | 'horizontal' | 'square'
   accent: 'blue' | 'orange' | 'green' | 'violet' | 'rose'
 }

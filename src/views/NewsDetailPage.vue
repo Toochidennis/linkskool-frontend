@@ -7,6 +7,7 @@ import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import NewsImageCarousel from '@/components/NewsImageCarousel.vue'
 import NewsList from '@/components/NewsList.vue'
+import SocialShareCluster from '@/components/SocialShareCluster.vue'
 import { adsenseConfig } from '@/config/adsense'
 import { useNewsDetail } from '@/composables/useNewsDetail'
 import { usePageMeta } from '@/composables/usePageMeta'
@@ -25,24 +26,24 @@ usePageMeta(() => ({
   description: article.value?.summary ?? 'Read LinkSkool news, opportunities, and stories.',
   keywords: 'LinkSkool news, education news, opportunities, career insights, learning community',
   url: article.value ? `https://linkskool.com/news/${article.value.slug}` : 'https://linkskool.com/news',
-  image: article.value?.imageUrl ?? 'https://linkskool.com/assets/og-image.png',
+  image: article.value?.imageUrl ?? 'https://linkskool.com/og-image.png',
   type: 'article',
 }))
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen overflow-x-hidden bg-slate-50">
     <AppHeader />
 
     <main class="pt-24">
       <section v-if="isLoadingArticle" class="mx-auto max-w-4xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div class="mb-8 h-5 w-32 animate-pulse rounded bg-gray-200"></div>
+        <div class="mb-8 h-5 w-32 animate-pulse rounded bg-slate-200"></div>
         <div class="space-y-5">
-          <div class="h-6 w-24 animate-pulse rounded-md bg-gray-200"></div>
-          <div class="h-12 w-full animate-pulse rounded bg-gray-200"></div>
-          <div class="h-12 w-4/5 animate-pulse rounded bg-gray-200"></div>
-          <div class="h-6 w-2/3 animate-pulse rounded bg-gray-100"></div>
-          <div class="h-[24rem] animate-pulse rounded-md bg-gray-200"></div>
+          <div class="h-6 w-24 animate-pulse rounded-md bg-slate-200"></div>
+          <div class="h-12 w-full animate-pulse rounded bg-slate-200"></div>
+          <div class="h-12 w-4/5 animate-pulse rounded bg-slate-200"></div>
+          <div class="h-6 w-2/3 animate-pulse rounded bg-slate-100"></div>
+          <div class="h-[24rem] animate-pulse rounded-md bg-slate-200"></div>
         </div>
       </section>
 
@@ -50,7 +51,7 @@ usePageMeta(() => ({
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <RouterLink
             to="/news"
-            class="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
+            class="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:text-brand-ink"
           >
             <i class="fa-solid fa-arrow-left text-xs"></i>
             Back to News
@@ -59,11 +60,11 @@ usePageMeta(() => ({
           <article>
             <div class="space-y-5">
               <div
-                class="inline-flex rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white"
+                class="inline-flex rounded-full bg-brand px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-white"
               >
                 {{ article.category }}
               </div>
-              <h1 class="text-3xl font-black leading-tight text-slate-950 sm:text-5xl">
+              <h1 class="break-words text-3xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl">
                 {{ article.title }}
               </h1>
               <p class="text-lg leading-8 text-slate-600">
@@ -76,6 +77,7 @@ usePageMeta(() => ({
                 <span class="h-1 w-1 rounded-full bg-slate-300"></span>
                 <span>{{ article.readTime }}</span>
               </div>
+              <SocialShareCluster :share-data="article.share" button-first />
             </div>
 
             <AdSenseSlot class="mt-8" :slot="adsenseConfig.slots.newsDetailHero" />
@@ -84,13 +86,21 @@ usePageMeta(() => ({
 
             <div
               v-if="article.contentHtml"
-              class="news-content mt-8 border-t border-gray-200 pt-8 text-base leading-8 text-slate-700"
+              class="news-content mt-8 border-t border-slate-200 pt-8 text-base leading-8 text-slate-700"
               v-html="article.contentHtml"
             ></div>
-            <div v-else class="mt-8 space-y-5 border-t border-gray-200 pt-8">
+            <div v-else class="mt-8 space-y-5 border-t border-slate-200 pt-8">
               <p v-for="paragraph in article.body" :key="paragraph" class="text-base leading-8 text-slate-700">
                 {{ paragraph }}
               </p>
+            </div>
+
+            <div class="mt-10 flex flex-col gap-4 rounded-[14px] border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div>
+                <p class="font-semibold text-slate-950">Found this story useful?</p>
+                <p class="mt-1 text-sm text-slate-500">Share it with someone who may benefit.</p>
+              </div>
+              <SocialShareCluster :share-data="article.share" />
             </div>
 
             <AdSenseSlot class="mt-10" :slot="adsenseConfig.slots.newsDetail" />
@@ -99,19 +109,19 @@ usePageMeta(() => ({
       </section>
 
       <section v-else class="mx-auto max-w-3xl px-4 pb-16 pt-10 text-center sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-black text-slate-950">News story not found</h1>
+        <h1 class="text-3xl font-semibold text-slate-950">News story not found</h1>
         <p class="mt-3 text-slate-600">{{ articleError || 'The story may have moved or no longer exists.' }}</p>
         <RouterLink
           to="/news"
-          class="mt-6 inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+          class="btn btn-primary btn-sm mt-6"
         >
           View all news
         </RouterLink>
       </section>
 
-      <section v-if="relatedNews.length > 0" class="bg-gray-50 pb-20">
+      <section v-if="relatedNews.length > 0" class="bg-slate-50 pb-20">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 class="mb-6 text-2xl font-black text-slate-950">More for you</h2>
+          <h2 class="mb-6 text-2xl font-semibold text-slate-950">More for you</h2>
           <NewsList :news-items="relatedNews" />
           <AdSenseSlot class="mt-10" :slot="adsenseConfig.slots.newsDetailBottom" />
         </div>

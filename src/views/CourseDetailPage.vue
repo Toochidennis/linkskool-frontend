@@ -139,12 +139,12 @@ const handleDocumentVisibility = () => {
 // Dynamic meta tags based on course data
 usePageMeta(() => ({
   title: courseDetail.value
-    ? `${courseDetail.value.course.courseName} - Professional Course | Linkskool`
-    : 'Course Details | Linkskool',
-  description: courseDetail.value?.course.description || courseDetail.value?.cohort.description || 'Learn from industry experts with our comprehensive course curriculum.',
+    ? `${courseDetail.value.course.courseName} - Professional Course | LinkSkool`
+    : 'Course Details | LinkSkool',
+  description: courseDetail.value?.course.description || courseDetail.value?.cohort.description || 'Explore this LinkSkool course, what it covers and how to enrol.',
   keywords: `${courseDetail.value?.course.courseName || 'course'}, online learning, professional development, skill training`,
   url: `https://linkskool.com/courses/${route.params.courseId}`,
-  image: courseDetail.value?.course.imageUrl ? resolveAssetUrl(courseDetail.value.course.imageUrl) || 'https://linkskool.com/assets/og-image.png' : 'https://linkskool.com/assets/og-image.png',
+  image: courseDetail.value?.course.imageUrl ? resolveAssetUrl(courseDetail.value.course.imageUrl) || 'https://linkskool.com/og-image.png' : 'https://linkskool.com/og-image.png',
   type: 'article',
 }))
 
@@ -241,7 +241,6 @@ const toEmbeddableVideoUrl = (rawUrl: string | null | undefined) => {
 }
 
 const displayVideoUrl = computed(() => toEmbeddableVideoUrl(courseDetail.value?.cohort.videoUrl))
-const displayImageUrl = computed(() => resolveAssetUrl(courseDetail.value?.cohort.imageUrl))
 const learningTypeLabel = computed(() =>
   courseDetail.value?.cohort.learningType === 'instructor_led' ? 'Instructor-led' : 'Self-paced',
 )
@@ -460,41 +459,38 @@ watch(detailRef, () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen overflow-x-hidden bg-white">
     <AppHeader />
 
     <div v-if="isLoading" class="pt-24 pb-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="animate-pulse">
-          <div class="h-96 bg-gray-200 rounded-2xl mb-8"></div>
+          <div class="h-96 bg-slate-200 rounded-2xl mb-8"></div>
           <div class="grid lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-4">
-              <div class="h-8 bg-gray-200 rounded w-3/4"></div>
-              <div class="h-4 bg-gray-200 rounded w-full"></div>
-              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div class="h-8 bg-slate-200 rounded w-3/4"></div>
+              <div class="h-4 bg-slate-200 rounded w-full"></div>
+              <div class="h-4 bg-slate-200 rounded w-5/6"></div>
             </div>
-            <div class="h-96 bg-gray-200 rounded-2xl"></div>
+            <div class="h-96 bg-slate-200 rounded-2xl"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-else-if="courseDetail" class="pt-24 pb-16">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-12">
-          <div v-if="displayVideoUrl" class="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
+    <div v-else-if="courseDetail" class="pb-28 pt-20 lg:pb-20 lg:pt-24">
+      <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div v-if="displayVideoUrl" class="mb-8 sm:mb-10">
+          <div class="relative aspect-video overflow-hidden rounded-xl border border-slate-200 bg-slate-100 sm:rounded-2xl">
             <iframe :src="displayVideoUrl" class="w-full h-full"
+              :title="`${courseDetail.course.courseName} course video`"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen></iframe>
           </div>
-          <div v-else-if="displayImageUrl" class="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
-            <img :src="displayImageUrl" :alt="courseDetail.course.courseName" loading="lazy"
-              class="w-full h-full object-cover" />
-          </div>
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-12">
-          <div class="lg:col-span-2 space-y-8">
+        <div class="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-12">
+          <div class="min-w-0 space-y-8">
             <div v-if="submitError" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {{ submitError }}
             </div>
@@ -505,16 +501,16 @@ watch(detailRef, () => {
             </div>
 
             <div v-if="lastPaymentUrl"
-              class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+              class="rounded-xl border border-brand-light/40 bg-brand-soft px-4 py-3 text-sm text-brand-ink">
               <p class="font-semibold">Checkout link ready</p>
-              <p class="mt-1 text-blue-700">If payment did not open automatically, continue with the button below.</p>
+              <p class="mt-1 text-brand">If payment did not open automatically, continue with the button below.</p>
               <div class="mt-2 flex flex-wrap items-center gap-3">
                 <button type="button" @click="resumePendingPayment"
-                  class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500">
+                  class="inline-flex items-center gap-2 rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-light">
                   <i class="fa-solid fa-up-right-from-square"></i>
                   <span>Resume Payment</span>
                 </button>
-                <span v-if="lastPaymentReference" class="text-xs text-blue-700">Ref: {{ lastPaymentReference }}</span>
+                <span v-if="lastPaymentReference" class="min-w-0 break-all text-xs text-brand">Ref: {{ lastPaymentReference }}</span>
               </div>
             </div>
 
@@ -536,71 +532,66 @@ watch(detailRef, () => {
               </div>
             </div>
 
-            <div>
-              <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            <div class="border-b border-slate-200 pb-8">
+              <p class="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-brand">{{ courseDetail.program.name }}</p>
+              <h1 class="break-words text-3xl font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-4xl lg:text-5xl">
                 {{ courseDetail.course.courseName }}
               </h1>
-              <p class="text-2xl text-gray-700 font-medium mb-6">
+              <p class="mt-3 break-words text-lg text-slate-600 sm:text-xl">
                 {{ courseDetail.cohort.title }}
               </p>
 
-              <div class="flex flex-wrap gap-6 text-gray-600">
-                <div class="flex items-center gap-2">
-                  <i class="fa-solid fa-chalkboard-user text-blue-600"></i>
-                  <span>{{ courseDetail.program.name }}</span>
-                </div>
+              <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-600">
                 <div v-if="courseDetail.cohort.deliveryMode" class="flex items-center gap-2">
-                  <i class="fa-solid fa-video text-orange-600"></i>
+                  <i class="fa-solid fa-video text-slate-400"></i>
                   <span>{{ courseDetail.cohort.deliveryMode }}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <i class="fa-solid fa-signal text-indigo-600"></i>
+                  <i class="fa-solid fa-signal text-slate-400"></i>
                   <span>{{ learningTypeLabel }}</span>
                 </div>
               </div>
             </div>
 
-            <div class="prose max-w-none">
-              <h2 class="text-2xl font-bold text-gray-900 mb-4">About This Course</h2>
-              <div class="text-gray-700 leading-relaxed whitespace-pre-line">
+            <div class="min-w-0">
+              <h2 class="mb-4 text-2xl font-semibold tracking-tight text-slate-950">About this course</h2>
+              <div class="break-words whitespace-pre-line leading-8 text-slate-600">
                 {{ courseDetail.cohort.description || courseDetail.course.description }}
               </div>
             </div>
 
             <div v-if="parsedBenefits.length > 0">
-              <h2 class="text-2xl font-bold text-gray-900 mb-6">What You'll Learn</h2>
-              <div class="grid md:grid-cols-2 gap-4">
+              <h2 class="mb-6 text-2xl font-semibold tracking-tight text-slate-950">What you'll learn</h2>
+              <div class="grid gap-3 sm:grid-cols-2">
                 <div v-for="(benefit, index) in parsedBenefits" :key="`${benefit}-${index}`"
-                  class="flex items-start gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all">
-                  <div class="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
-                    <i class="fa-solid fa-check text-green-600 text-xs"></i>
+                  class="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-soft">
+                    <i class="fa-solid fa-check text-xs text-brand"></i>
                   </div>
-                  <p class="text-gray-700">{{ benefit }}</p>
+                  <p class="min-w-0 break-words text-slate-700">{{ benefit }}</p>
                 </div>
               </div>
             </div>
 
-            <div v-if="courseDetail.cohort.instructorName"
-              class="bg-gradient-to-br from-blue-50 to-orange-50 rounded-2xl p-8">
-              <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Instructor</h2>
-              <div class="flex items-start gap-6">
-                <div
-                  class="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-blue-600 to-orange-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+            <div v-if="courseDetail.cohort.instructorName" class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
+              <h2 class="mb-5 text-2xl font-semibold tracking-tight text-slate-950">Your instructor</h2>
+              <div class="flex min-w-0 items-center gap-4">
+                <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl font-semibold text-slate-700">
                   {{ courseDetail.cohort.instructorName.charAt(0) }}
                 </div>
-                <div>
-                  <h3 class="text-xl font-bold text-gray-900 mb-2">
+                <div class="min-w-0">
+                  <h3 class="break-words text-lg font-semibold text-slate-950">
                     {{ courseDetail.cohort.instructorName }}
                   </h3>
-                  <p class="text-gray-600">Course instructor</p>
+                  <p class="mt-1 text-sm text-slate-500">Course instructor</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="lg:col-span-1">
+          <aside class="min-w-0">
             <EnrollmentCard :course-detail="courseDetail" @enroll="handleEnroll" @reserve="handleReserve" />
-          </div>
+          </aside>
         </div>
       </div>
     </div>
@@ -608,8 +599,8 @@ watch(detailRef, () => {
     <div v-else class="pt-24 pb-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center py-16">
-          <i class="fa-solid fa-circle-exclamation text-6xl text-gray-300 mb-4"></i>
-          <p class="text-xl text-gray-600">{{ loadError || 'Course details unavailable.' }}</p>
+          <i class="fa-solid fa-circle-exclamation text-6xl text-slate-300 mb-4"></i>
+          <p class="text-xl text-slate-600">{{ loadError || 'Course details unavailable.' }}</p>
         </div>
       </div>
     </div>

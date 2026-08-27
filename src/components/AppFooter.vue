@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 
+import logoSrc from '@/assets/logo.png'
 import type { Program } from '@/api/models'
 import { programService } from '@/api/services'
+import { siteLinks } from '@/config/site'
 
 const email = ref('')
 const programs = ref<Program[]>([])
 const isLoadingPrograms = ref(false)
 
-const abbreviateProgramName = (name: string, maxLength = 24) => {
-  if (name.length <= maxLength) {
-    return name
-  }
-  return `${name.slice(0, maxLength - 1).trimEnd()}…`
-}
+const abbreviateProgramName = (name: string, maxLength = 24) =>
+  name.length <= maxLength ? name : `${name.slice(0, maxLength - 1).trimEnd()}…`
 
 const footerPrograms = computed(() =>
   programs.value.slice(0, 4).map((program) => ({
@@ -22,12 +21,21 @@ const footerPrograms = computed(() =>
   })),
 )
 
+// NOTE: not wired to a backend yet — this only acknowledges the input locally.
 const subscribeNewsletter = () => {
   if (email.value) {
     alert('Thank you for subscribing!')
     email.value = ''
   }
 }
+
+const socials = [
+  { label: 'Facebook', icon: 'fa-facebook-f', url: 'https://www.facebook.com/share/1Dwd5kQsgM/' },
+  { label: 'X (formerly Twitter)', icon: 'fa-x-twitter', url: 'https://x.com/DigitalDreamsNG' },
+  { label: 'Instagram', icon: 'fa-instagram', url: 'https://www.instagram.com/digitaldreamslimited/?hl=en' },
+  { label: 'LinkedIn', icon: 'fa-linkedin-in', url: 'https://www.linkedin.com/company/digital-dreams-limited/posts/?feedView=all' },
+  { label: 'YouTube', icon: 'fa-youtube', url: 'https://www.youtube.com/@digitaldreamslimited' },
+]
 
 onMounted(async () => {
   isLoadingPrograms.value = true
@@ -42,139 +50,113 @@ onMounted(async () => {
 </script>
 
 <template>
-  <footer class="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-gray-300">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <!-- Main Footer Content -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
-        <!-- Brand Column -->
-        <div class="lg:col-span-2">
-          <div class="flex items-center gap-2 mb-4">
-            <img src="@/assets/logo.png" alt="LinkSkool" class="h-8 w-auto" />
-            <span class="text-xl font-bold text-white">LinkSkool</span>
-          </div>
-          <p class="text-gray-400 mb-6 max-w-sm">
-            Empowering learners worldwide with quality education and innovative learning experiences.
+  <footer class="bg-slate-950 text-slate-400">
+    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <div class="grid gap-12 md:grid-cols-2 lg:grid-cols-5 lg:gap-10">
+        <!-- Brand -->
+        <div class="lg:col-span-2 lg:pr-8">
+          <RouterLink to="/" class="inline-flex items-center gap-2.5">
+            <img :src="logoSrc" alt="" class="h-8 w-auto" />
+            <span class="text-xl font-semibold tracking-tight"><span class="text-brand">Link</span><span class="text-orange">Skool</span></span>
+          </RouterLink>
+          <p class="mt-5 max-w-sm leading-7">
+            Education infrastructure for Africa — connecting learning, assessment, records and
+            reporting inside one platform.
           </p>
 
-          <!-- Newsletter -->
-          <div class="space-y-3">
-            <h4 class="text-white font-semibold">Subscribe to our newsletter</h4>
-            <form @submit.prevent="subscribeNewsletter" class="flex gap-2">
-              <input v-model="email" type="email" placeholder="Enter your email" required
-                class="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-500" />
-              <button type="submit"
-                class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap cursor-pointer">
-                Subscribe
-              </button>
+          <div class="mt-8">
+            <p class="text-sm font-semibold text-white">Get product updates</p>
+            <form class="mt-3 flex flex-col gap-2.5 sm:flex-row" @submit.prevent="subscribeNewsletter">
+              <label for="footer-email" class="sr-only">Email address</label>
+              <input
+                id="footer-email"
+                v-model="email"
+                type="email"
+                placeholder="you@school.edu.ng"
+                required
+                class="min-w-0 flex-1 rounded-full border border-slate-800 bg-slate-900 px-5 py-3 text-[15px] text-white outline-none transition placeholder:text-slate-500 focus:border-brand-light focus:ring-4 focus:ring-brand/25"
+              />
+              <button type="submit" class="btn btn-primary btn-sm">Subscribe</button>
             </form>
           </div>
         </div>
 
         <!-- Programs -->
-        <div>
-          <h3 class="text-white font-semibold mb-4">Programs</h3>
-          <ul class="space-y-3">
+        <nav aria-labelledby="footer-programs">
+          <h2 id="footer-programs" class="text-sm font-semibold text-white">Programs</h2>
+          <ul class="mt-5 space-y-3.5 text-[15px]">
             <template v-if="isLoadingPrograms">
-              <li v-for="i in 4" :key="`program-loading-${i}`" class="h-5 w-32 rounded bg-gray-800/80 animate-pulse">
-              </li>
+              <li v-for="i in 4" :key="`program-loading-${i}`" class="h-4 w-32 animate-pulse rounded-full bg-slate-800"></li>
             </template>
-            <template v-else-if="footerPrograms.length > 0">
+            <template v-else-if="footerPrograms.length">
               <li v-for="program in footerPrograms" :key="program.id">
-                <RouterLink :to="`/programs/${program.slug}`" :title="program.name"
-                  class="hover:text-white transition-colors">
+                <RouterLink :to="`/programs/${program.slug}`" :title="program.name" class="transition hover:text-white">
                   {{ program.displayName }}
                 </RouterLink>
               </li>
               <li>
-                <RouterLink to="/#programs" class="text-blue-300 hover:text-blue-200 transition-colors">
+                <RouterLink to="/#programs" class="font-medium text-brand-light transition hover:text-white">
                   View all programs
                 </RouterLink>
               </li>
             </template>
             <li v-else>
-              <RouterLink to="/#programs" class="hover:text-white transition-colors">
-                Explore Programs
-              </RouterLink>
+              <RouterLink to="/#programs" class="transition hover:text-white">Explore programs</RouterLink>
             </li>
           </ul>
-        </div>
+        </nav>
 
-        <!-- Resources -->
-        <div>
-          <h3 class="text-white font-semibold mb-4">Resources</h3>
-          <ul class="space-y-3">
-            <li><a href="#" class="hover:text-white transition-colors">Help Center</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+        <!-- Platform -->
+        <nav aria-labelledby="footer-platform">
+          <h2 id="footer-platform" class="text-sm font-semibold text-white">Platform</h2>
+          <ul class="mt-5 space-y-3.5 text-[15px]">
+            <li><RouterLink to="/#flow" class="transition hover:text-white">LinkSkool Flow</RouterLink></li>
+            <li><RouterLink to="/#platform" class="transition hover:text-white">CBT &amp; assessments</RouterLink></li>
             <li>
-              <RouterLink to="/faqs" class="hover:text-white transition-colors">FAQs</RouterLink>
+              <a :href="siteLinks.app" target="_blank" rel="noopener noreferrer" class="transition hover:text-white">
+                Open the app
+              </a>
             </li>
+            <li><RouterLink to="/news" class="transition hover:text-white">News</RouterLink></li>
           </ul>
-        </div>
+        </nav>
 
         <!-- Company -->
-        <div>
-          <h3 class="text-white font-semibold mb-4">Company</h3>
-          <ul class="space-y-3">
-            <li>
-              <RouterLink to="/about" class="hover:text-white transition-colors">About Us</RouterLink>
-            </li>
-            <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
-            <li>
-              <RouterLink to="/contact" class="hover:text-white transition-colors">Contact</RouterLink>
-            </li>
-            <li>
-              <RouterLink to="/privacy-policy" class="hover:text-white transition-colors">Privacy Policy
-              </RouterLink>
-            </li>
-            <li>
-              <RouterLink to="/terms-of-use" class="hover:text-white transition-colors">Terms of Use</RouterLink>
-            </li>
+        <nav aria-labelledby="footer-company">
+          <h2 id="footer-company" class="text-sm font-semibold text-white">Company</h2>
+          <ul class="mt-5 space-y-3.5 text-[15px]">
+            <li><RouterLink to="/about" class="transition hover:text-white">About us</RouterLink></li>
+            <li><RouterLink to="/contact" class="transition hover:text-white">Contact</RouterLink></li>
+            <li><RouterLink to="/faqs" class="transition hover:text-white">FAQs</RouterLink></li>
+            <li><RouterLink to="/privacy-policy" class="transition hover:text-white">Privacy policy</RouterLink></li>
+            <li><RouterLink to="/terms-of-use" class="transition hover:text-white">Terms of use</RouterLink></li>
           </ul>
-        </div>
+        </nav>
       </div>
 
-      <!-- Bottom Bar -->
-      <div class="pt-8 border-t border-gray-800">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p class="text-gray-400 text-sm">
-            © {{ new Date().getFullYear() }} LinkSkool. All rights reserved.
-          </p>
+      <!-- Bottom bar -->
+      <div class="mt-14 flex flex-col items-center justify-between gap-6 border-t border-slate-800/80 pt-8 sm:mt-16 md:flex-row">
+        <p class="order-3 text-sm md:order-1">
+          © {{ new Date().getFullYear() }} LinkSkool Online Ventures Limited.
+        </p>
 
-          <!-- Social Icons -->
-          <div class="flex items-center gap-4">
-            <a href="https://www.facebook.com/share/1Dwd5kQsgM/"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 hover:bg-blue-600 transition-colors"
-              aria-label="Facebook">
-              <i class="fa-brands fa-facebook-f text-sm"></i>
-            </a>
-            <a href="https://x.com/DigitalDreamsNG"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 hover:bg-blue-400 transition-colors"
-              aria-label="X (formerly Twitter)">
-              <i class="fa-brands fa-x text-sm"></i>
-            </a>
-            <a href="https://www.instagram.com/digitaldreamslimited/?hl=en"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 hover:bg-pink-600 transition-colors"
-              aria-label="Instagram">
-              <i class="fa-brands fa-instagram text-sm"></i>
-            </a>
-            <a href="https://www.linkedin.com/company/digital-dreams-limited/posts/?feedView=all"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 hover:bg-blue-700 transition-colors"
-              aria-label="LinkedIn">
-              <i class="fa-brands fa-linkedin-in text-sm"></i>
-            </a>
-            <a href="https://www.youtube.com/@digitaldreamslimited"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 hover:bg-red-600 transition-colors"
-              aria-label="YouTube">
-              <i class="fa-brands fa-youtube text-sm"></i>
-            </a>
-          </div>
-
-          <!-- Contact Email -->
-          <a href="mailto:hello@linkskool.com" class="text-gray-400 hover:text-white transition-colors text-sm">
-            hello@linkskool.com
+        <div class="order-1 flex items-center gap-2.5 md:order-2">
+          <a
+            v-for="social in socials"
+            :key="social.label"
+            :href="social.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            :aria-label="social.label"
+            class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-800 text-slate-400 transition hover:border-slate-600 hover:bg-slate-900 hover:text-white"
+          >
+            <i :class="['fa-brands', social.icon, 'text-sm']"></i>
           </a>
         </div>
+
+        <a href="mailto:info@linkskool.com" class="order-2 text-sm transition hover:text-white md:order-3">
+          info@linkskool.com
+        </a>
       </div>
     </div>
   </footer>

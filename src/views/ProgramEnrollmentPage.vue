@@ -109,14 +109,14 @@ const programRef = computed(() => {
 // Dynamic meta tags based on enrollment data
 usePageMeta(() => ({
   title: program.value
-    ? `Enroll in ${program.value.name} | Linkskool`
-    : 'Program Enrollment | Linkskool',
+    ? `Enroll in ${program.value.name} | LinkSkool`
+    : 'Program Enrollment | LinkSkool',
   description: program.value
     ? `Enroll in ${program.value.name}. ${program.value.description}`
-    : 'Choose your courses and enroll in our professional learning program.',
+    : 'Choose your courses and enrol in this LinkSkool program.',
   keywords: `${program.value?.name || 'program'} enrollment, online course enrollment, skill development, professional training`,
   url: `https://linkskool.com/programs/${programRef.value}/enroll`,
-  image: 'https://linkskool.com/assets/og-image.png',
+  image: 'https://linkskool.com/og-image.png',
   type: 'website',
 }))
 
@@ -633,10 +633,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen overflow-x-hidden bg-slate-50">
     <AppHeader />
 
-    <section class="pt-24 pb-10 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600">
+    <section class="border-b border-slate-200 bg-white pb-10 pt-24">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div v-if="isLoading" class="animate-pulse">
           <div class="h-11 bg-white/20 rounded-lg w-2/3 mb-4"></div>
@@ -644,35 +644,35 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-else-if="program" class="max-w-4xl">
-          <nav class="flex items-center gap-2 text-blue-100 mb-5">
-            <RouterLink to="/" class="hover:text-white transition-colors">Home</RouterLink>
+          <nav class="mb-5 flex min-w-0 flex-wrap items-center gap-2 text-sm text-slate-500">
+            <RouterLink to="/" class="hover:text-brand">Home</RouterLink>
             <i class="fa-solid fa-chevron-right text-xs"></i>
-            <RouterLink :to="`/programs/${program.slug}`" class="hover:text-white transition-colors">{{ program.name }}
+            <RouterLink :to="`/programs/${program.slug}`" class="min-w-0 truncate hover:text-brand">{{ program.name }}
             </RouterLink>
             <i class="fa-solid fa-chevron-right text-xs"></i>
-            <span class="text-white">Enrollment</span>
+            <span class="text-slate-700">Enrollment</span>
           </nav>
 
-          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Enroll In {{ program.name }}</h1>
-          <p class="text-blue-100 text-lg leading-relaxed max-w-3xl">
+          <h1 class="mb-4 break-words text-3xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Enroll in {{ program.name }}</h1>
+          <p class="max-w-3xl text-lg leading-8 text-slate-600">
             Select one or more courses from this program and complete a single checkout flow.
           </p>
 
-          <div v-if="programStartDate" class="mt-6 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
+          <div v-if="programStartDate" class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-orange-100">Program starts</p>
-                <p class="mt-1 text-xl font-semibold text-white">{{ formatLongDate(programStartDate) }}</p>
-                <p class="mt-1 text-sm text-blue-100">
+                <p class="text-sm font-semibold uppercase tracking-[0.16em] text-brand">Program starts</p>
+                <p class="mt-1 text-xl font-semibold text-slate-950">{{ formatLongDate(programStartDate) }}</p>
+                <p class="mt-1 text-sm text-slate-600">
                   {{ programCountdown?.isStarted ? 'This program has started.' : 'Countdown to your next cohort.' }}
                 </p>
               </div>
 
-              <div v-if="!programCountdown?.isStarted" class="grid grid-cols-4 gap-2 sm:gap-3">
+              <div v-if="!programCountdown?.isStarted" class="grid w-full grid-cols-4 gap-1.5 sm:w-auto sm:gap-3">
                 <div v-for="segment in countdownSegments" :key="segment.label"
-                  class="min-w-16 rounded-xl bg-white/12 px-3 py-2 text-center">
-                  <p class="text-2xl font-bold text-white">{{ String(segment.value).padStart(2, '0') }}</p>
-                  <p class="text-[11px] uppercase tracking-[0.18em] text-blue-100">{{ segment.label }}</p>
+                  class="min-w-0 rounded-xl border border-slate-200 bg-white px-1 py-2 text-center sm:px-3">
+                  <p class="text-xl font-semibold text-slate-950 sm:text-2xl">{{ String(segment.value).padStart(2, '0') }}</p>
+                  <p class="truncate text-[9px] uppercase tracking-wider text-slate-500 sm:text-[11px]">{{ segment.label }}</p>
                 </div>
               </div>
             </div>
@@ -680,8 +680,8 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-else>
-          <h1 class="text-3xl font-bold text-white">Enrollment unavailable</h1>
-          <p class="text-blue-100 mt-2">{{ loadError || 'Please try again later.' }}</p>
+          <h1 class="text-3xl font-semibold text-slate-950">Enrollment unavailable</h1>
+          <p class="mt-2 text-slate-600">{{ loadError || 'Please try again later.' }}</p>
         </div>
       </div>
     </section>
@@ -693,22 +693,22 @@ onBeforeUnmount(() => {
           {{ loadError }}
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-8">
-          <div class="lg:col-span-2 space-y-8">
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div class="grid min-w-0 gap-8 lg:grid-cols-3">
+          <div class="min-w-0 space-y-8 lg:col-span-2">
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
-                  <h2 class="text-2xl font-bold text-gray-900">Choose Courses</h2>
-                  <p class="text-gray-600 mt-1">Select all courses you want to include in this purchase.</p>
+                  <h2 class="text-2xl font-bold text-slate-900">Choose Courses</h2>
+                  <p class="text-slate-600 mt-1">Select all courses you want to include in this purchase.</p>
                 </div>
                 <div class="flex items-center gap-3">
                   <button type="button"
-                    class="px-4 py-2 rounded-lg border border-blue-200 text-blue-700 font-medium hover:bg-blue-50 transition-colors cursor-pointer"
+                    class="px-4 py-2 rounded-lg border border-brand-light/40 text-brand font-medium hover:bg-brand-soft transition-colors cursor-pointer"
                     @click="selectAllCourses">
                     Select all
                   </button>
                   <button type="button"
-                    class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                    class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors cursor-pointer"
                     @click="clearSelection">
                     Clear
                   </button>
@@ -716,24 +716,24 @@ onBeforeUnmount(() => {
               </div>
 
               <div v-if="isLoading" class="space-y-4">
-                <div v-for="index in 4" :key="index" class="h-28 rounded-xl bg-gray-100 animate-pulse"></div>
+                <div v-for="index in 4" :key="index" class="h-28 rounded-xl bg-slate-100 animate-pulse"></div>
               </div>
 
               <div v-else class="space-y-4">
                 <div v-for="course in normalizedCourses" :key="course.courseId"
                   class="rounded-xl border p-4 transition-all duration-200"
-                  :class="isSelected(course.courseId) ? 'border-blue-400 bg-blue-50/50 shadow-sm' : 'border-gray-200 bg-white hover:border-blue-200'">
+                  :class="isSelected(course.courseId) ? 'border-brand-light bg-brand-soft/50 shadow-sm' : 'border-slate-200 bg-white hover:border-brand-light/40'">
                   <label class="flex items-start gap-4"
                     :class="canSelectCourse(course) ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'">
                     <input type="checkbox"
-                      class="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      class="mt-1 h-5 w-5 rounded border-slate-300 text-brand focus:ring-brand-light"
                       :checked="isSelected(course.courseId)" :disabled="!canSelectCourse(course)"
                       @change="toggleCourseSelection(course.courseId)" />
 
-                    <div class="w-24 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    <div class="w-24 h-16 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
                       <img v-if="courseImage(course.imageUrl)" :src="courseImage(course.imageUrl) as string"
                         loading="lazy" :alt="course.courseName" class="w-full h-full object-cover" />
-                      <div v-else class="w-full h-full flex items-center justify-center text-blue-300">
+                      <div v-else class="w-full h-full flex items-center justify-center text-brand-light">
                         <i class="fa-solid fa-book"></i>
                       </div>
                     </div>
@@ -741,16 +741,16 @@ onBeforeUnmount(() => {
                     <div class="flex-1 min-w-0">
                       <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <h3 class="text-lg font-semibold text-gray-900 leading-snug">{{ course.courseName }}</h3>
-                          <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ course.description }}</p>
+                          <h3 class="text-lg font-semibold text-slate-900 leading-snug">{{ course.courseName }}</h3>
+                          <p class="text-sm text-slate-600 mt-1 line-clamp-2">{{ course.description }}</p>
                         </div>
 
                         <div class="text-right">
                           <div v-if="course.isFree" class="text-lg font-bold text-green-600">Free</div>
                           <div v-else class="space-y-0.5">
-                            <div class="text-lg font-bold text-gray-900">{{ formatPrice(courseFinalPrice(course)) }}
+                            <div class="text-lg font-bold text-slate-900">{{ formatPrice(courseFinalPrice(course)) }}
                             </div>
-                            <div v-if="course.discount" class="text-xs text-gray-400 line-through">{{
+                            <div v-if="course.discount" class="text-xs text-slate-400 line-through">{{
                               formatPrice(course.cost) }}</div>
                           </div>
                         </div>
@@ -770,7 +770,7 @@ onBeforeUnmount(() => {
                           {{ displayTrial(course) }}
                         </span>
                         <span v-if="!course.cohortId"
-                          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
                           No active cohort
                         </span>
                         <span v-if="course.enrollmentDeadline"
@@ -790,32 +790,32 @@ onBeforeUnmount(() => {
           </div>
 
           <aside class="lg:col-span-1">
-            <div class="sticky top-24 bg-white rounded-2xl border border-gray-100 shadow-lg p-6 space-y-5">
-              <h2 class="text-2xl font-bold text-gray-900">Order Summary</h2>
+            <div class="sticky top-24 bg-white rounded-2xl border border-slate-100 shadow-lg p-6 space-y-5">
+              <h2 class="text-2xl font-bold text-slate-900">Order Summary</h2>
 
               <div class="space-y-3 max-h-56 overflow-auto pr-1">
                 <div v-for="course in selectedCourses" :key="course.courseId"
-                  class="flex items-start justify-between gap-3 pb-3 border-b border-gray-100 last:border-b-0">
+                  class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 last:border-b-0">
                   <div class="min-w-0">
-                    <p class="text-sm font-medium text-gray-900 truncate">{{ course.courseName }}</p>
-                    <p class="text-xs text-gray-500">{{ course.isFree ? 'Free' : 'Paid course' }}</p>
+                    <p class="text-sm font-medium text-slate-900 truncate">{{ course.courseName }}</p>
+                    <p class="text-xs text-slate-500">{{ course.isFree ? 'Free' : 'Paid course' }}</p>
                   </div>
-                  <p class="text-sm font-semibold text-gray-900">{{ course.isFree ? 'Free' :
+                  <p class="text-sm font-semibold text-slate-900">{{ course.isFree ? 'Free' :
                     formatPrice(courseFinalPrice(course)) }}</p>
                 </div>
               </div>
 
               <div class="space-y-2 pt-1 text-sm">
-                <div v-if="programStartDate" class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                <div v-if="programStartDate" class="rounded-xl border border-brand-soft bg-brand-soft px-4 py-3">
                   <div class="flex items-start gap-3">
                     <div
-                      class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white text-blue-600">
+                      class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white text-brand">
                       <i class="fa-solid fa-calendar-day"></i>
                     </div>
                     <div class="min-w-0">
-                      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Program Start Date</p>
-                      <p class="mt-1 text-sm font-semibold text-gray-900">{{ formatLongDate(programStartDate) }}</p>
-                      <p class="mt-1 text-xs text-gray-600">
+                      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand">Program Start Date</p>
+                      <p class="mt-1 text-sm font-semibold text-slate-900">{{ formatLongDate(programStartDate) }}</p>
+                      <p class="mt-1 text-xs text-slate-600">
                         {{ programCountdown?.isStarted
                           ? 'Program is already in progress.'
                           : `${countdownSegments[0]?.value ?? 0}d ${String(countdownSegments[1]?.value ?? 0).padStart(2,
@@ -826,19 +826,19 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between text-gray-600">
+                <div class="flex items-center justify-between text-slate-600">
                   <span>Selected Courses</span>
                   <span>{{ selectedCourses.length }}</span>
                 </div>
-                <div class="flex items-center justify-between text-gray-600">
+                <div class="flex items-center justify-between text-slate-600">
                   <span>Paid Courses</span>
                   <span>{{ selectedPaidCount }}</span>
                 </div>
-                <div class="flex items-center justify-between text-gray-600">
+                <div class="flex items-center justify-between text-slate-600">
                   <span>Free Courses</span>
                   <span>{{ selectedFreeCount }}</span>
                 </div>
-                <div class="flex items-center justify-between text-gray-600">
+                <div class="flex items-center justify-between text-slate-600">
                   <span>Subtotal</span>
                   <span>{{ formatPrice(subtotal) }}</span>
                 </div>
@@ -846,9 +846,9 @@ onBeforeUnmount(() => {
                   <span>Discounts</span>
                   <span>- {{ formatPrice(discountAmount) }}</span>
                 </div>
-                <div class="pt-2 mt-2 border-t border-gray-200 flex items-center justify-between">
-                  <span class="text-base font-semibold text-gray-900">Total</span>
-                  <span class="text-xl font-bold text-blue-700">{{ formatPrice(total) }}</span>
+                <div class="pt-2 mt-2 border-t border-slate-200 flex items-center justify-between">
+                  <span class="text-base font-semibold text-slate-900">Total</span>
+                  <span class="text-xl font-bold text-brand">{{ formatPrice(total) }}</span>
                 </div>
               </div>
 
@@ -886,22 +886,22 @@ onBeforeUnmount(() => {
               </div>
 
               <div v-if="lastPaymentUrl && !hasPendingPayment"
-                class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-3 text-sm text-blue-800">
+                class="rounded-xl border border-brand-light/40 bg-brand-soft px-3 py-3 text-sm text-brand-ink">
                 <p class="font-semibold">Checkout link ready</p>
-                <p class="mt-1 text-blue-700">If you were interrupted, continue with the button below.</p>
+                <p class="mt-1 text-brand">If you were interrupted, continue with the button below.</p>
                 <div class="mt-2 flex flex-wrap items-center gap-3">
                   <button type="button"
-                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-500 cursor-pointer"
+                    class="inline-flex items-center gap-2 rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-light cursor-pointer"
                     @click="resumePendingPayment">
                     <i class="fa-solid fa-up-right-from-square"></i>
                     <span>Resume Payment</span>
                   </button>
-                  <span v-if="lastPaymentReference" class="text-xs text-blue-700">Ref: {{ lastPaymentReference }}</span>
+                  <span v-if="lastPaymentReference" class="min-w-0 break-all text-xs text-brand">Ref: {{ lastPaymentReference }}</span>
                 </div>
               </div>
 
               <button type="button"
-                class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3.5 font-semibold text-white transition hover:bg-brand-ink disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="isSubmitting || isCheckingPendingPayment || hasPendingPayment"
                 @click="openEnrollmentModal('pay')">
                 <i v-if="isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
@@ -910,7 +910,7 @@ onBeforeUnmount(() => {
               </button>
 
               <button type="button"
-                class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-semibold hover:border-orange-400 hover:text-orange-600 hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="isSubmitting || isCheckingPendingPayment || hasPendingPayment"
                 @click="openEnrollmentModal('reserve')">
                 <i v-if="isSubmitting && enrollmentAction === 'reserve'" class="fa-solid fa-spinner fa-spin"></i>
@@ -918,7 +918,7 @@ onBeforeUnmount(() => {
                 <span>{{ isSubmitting && enrollmentAction === 'reserve' ? 'Processing...' : 'Reserve Seat' }}</span>
               </button>
 
-              <p class="text-xs text-gray-500 text-center">
+              <p class="text-xs text-slate-500 text-center">
                 Secure checkout for paid enrollment, or reserve your spot now and complete payment later.
               </p>
             </div>
@@ -927,21 +927,21 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <div v-if="showBillingModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4"
+    <div v-if="showBillingModal" class="fixed inset-0 z-[60] overflow-y-auto bg-slate-950/40 p-0 backdrop-blur-sm sm:p-4"
       @click.self="closeBillingModal">
-      <div class="max-w-2xl mx-auto mt-10 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+      <div class="mx-auto mt-0 max-h-[100dvh] max-w-2xl overflow-x-hidden overflow-y-auto rounded-b-2xl bg-white sm:mt-10 sm:max-h-[90dvh] sm:rounded-2xl">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-gray-900">
+            <h2 class="text-2xl font-bold text-slate-900">
               {{ enrollmentAction === 'reserve' ? 'Reserve Your Seat' : 'Billing Information' }}
             </h2>
-            <p class="text-sm text-gray-600 mt-1">
+            <p class="text-sm text-slate-600 mt-1">
               {{ enrollmentAction === 'reserve'
                 ? 'Enter your details to reserve the selected courses.'
                 : 'Enter your details to continue payment for selected courses.' }}
             </p>
           </div>
-          <button type="button" class="w-10 h-10 rounded-full hover:bg-gray-100 text-gray-500 cursor-pointer"
+          <button type="button" class="w-10 h-10 rounded-full hover:bg-slate-100 text-slate-500 cursor-pointer"
             @click="closeBillingModal">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -954,54 +954,54 @@ onBeforeUnmount(() => {
 
           <div class="grid sm:grid-cols-2 gap-4">
             <div>
-              <label for="billingFirstName" class="block text-sm font-medium text-gray-700 mb-1.5">First Name</label>
+              <label for="billingFirstName" class="block text-sm font-medium text-slate-700 mb-1.5">First Name</label>
               <input id="billingFirstName" v-model="customerForm.firstName" type="text" placeholder="e.g. John"
                 class="w-full rounded-xl border px-4 py-2.5 outline-none focus:ring-2 transition-colors"
-                :class="formErrors.firstName ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'" />
+                :class="formErrors.firstName ? 'border-red-300 focus:ring-red-500' : 'border-slate-300 focus:ring-brand-light'" />
               <p v-if="formErrors.firstName" class="text-xs text-red-600 mt-1">{{ formErrors.firstName }}</p>
             </div>
 
             <div>
-              <label for="billingLastName" class="block text-sm font-medium text-gray-700 mb-1.5">Last Name</label>
+              <label for="billingLastName" class="block text-sm font-medium text-slate-700 mb-1.5">Last Name</label>
               <input id="billingLastName" v-model="customerForm.lastName" type="text" placeholder="e.g. Doe"
                 class="w-full rounded-xl border px-4 py-2.5 outline-none focus:ring-2 transition-colors"
-                :class="formErrors.lastName ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'" />
+                :class="formErrors.lastName ? 'border-red-300 focus:ring-red-500' : 'border-slate-300 focus:ring-brand-light'" />
               <p v-if="formErrors.lastName" class="text-xs text-red-600 mt-1">{{ formErrors.lastName }}</p>
             </div>
 
             <div>
-              <label for="billingEmail" class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label for="billingEmail" class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
               <input id="billingEmail" v-model="customerForm.email" type="email" placeholder="you@example.com"
                 class="w-full rounded-xl border px-4 py-2.5 outline-none focus:ring-2 transition-colors"
-                :class="formErrors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'" />
+                :class="formErrors.email ? 'border-red-300 focus:ring-red-500' : 'border-slate-300 focus:ring-brand-light'" />
               <p v-if="formErrors.email" class="text-xs text-red-600 mt-1">{{ formErrors.email }}</p>
             </div>
 
             <div>
-              <label for="billingPhoneNumber" class="block text-sm font-medium text-gray-700 mb-1.5">Phone
+              <label for="billingPhoneNumber" class="block text-sm font-medium text-slate-700 mb-1.5">Phone
                 Number</label>
               <input id="billingPhoneNumber" v-model="customerForm.phoneNumber" type="tel"
                 placeholder="+234 801 234 5678"
                 class="w-full rounded-xl border px-4 py-2.5 outline-none focus:ring-2 transition-colors"
-                :class="formErrors.phoneNumber ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'" />
+                :class="formErrors.phoneNumber ? 'border-red-300 focus:ring-red-500' : 'border-slate-300 focus:ring-brand-light'" />
               <p v-if="formErrors.phoneNumber" class="text-xs text-red-600 mt-1">{{ formErrors.phoneNumber }}</p>
             </div>
           </div>
 
-          <div class="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-between">
-            <span class="text-sm text-gray-700">
+          <div class="mt-6 p-4 rounded-xl bg-brand-soft border border-brand-soft flex items-center justify-between">
+            <span class="text-sm text-slate-700">
               {{ enrollmentAction === 'reserve' ? 'Selected course total' : 'Total to pay' }}</span>
-            <span class="text-xl font-bold text-blue-700">{{ formatPrice(total) }}</span>
+            <span class="text-xl font-bold text-brand">{{ formatPrice(total) }}</span>
           </div>
 
-          <div class="mt-6 flex items-center justify-end gap-3">
+          <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
             <button type="button"
-              class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors cursor-pointer"
+              class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
               @click="closeBillingModal">
               Cancel
             </button>
             <button type="button"
-              class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 font-semibold text-white transition hover:bg-brand-ink disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="isSubmitting" @click="submitEnrollment">
               <i v-if="isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
               <i v-else class="fa-solid fa-lock"></i>
@@ -1020,26 +1020,26 @@ onBeforeUnmount(() => {
 
     <div v-if="isRedirectingToCheckout"
       class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-100 px-6 py-8 text-center">
-        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+      <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-100 px-6 py-8 text-center">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-brand">
           <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
         </div>
-        <h3 class="text-xl font-bold text-gray-900">Preparing your checkout</h3>
-        <p class="mt-2 text-sm text-gray-600">
+        <h3 class="text-xl font-bold text-slate-900">Preparing your checkout</h3>
+        <p class="mt-2 text-sm text-slate-600">
           Please wait while we redirect you to secure payment. Do not close this tab.
         </p>
       </div>
     </div>
 
-    <div v-if="showReservationSuccessModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4"
+    <div v-if="showReservationSuccessModal" class="fixed inset-0 z-[60] overflow-y-auto bg-slate-950/40 p-0 backdrop-blur-sm sm:p-4"
       @click.self="closeReservationSuccessModal">
-      <div class="max-w-xl mx-auto mt-12 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-        <div class="px-6 py-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-orange-500 text-white">
+      <div class="mx-auto mt-0 max-h-[100dvh] max-w-xl overflow-x-hidden overflow-y-auto rounded-b-2xl bg-white sm:mt-12 sm:max-h-[90dvh] sm:rounded-2xl">
+        <div class="border-b border-slate-200 bg-slate-950 px-5 py-6 text-white sm:px-6">
           <div class="flex items-start justify-between gap-4">
             <div>
               <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-100">Reservation Complete</p>
               <h2 class="mt-2 text-2xl font-bold">Your seat has been reserved</h2>
-              <p class="mt-2 text-blue-100">Watch your inbox for next steps from the Linkskool team.</p>
+              <p class="mt-2 text-blue-100">Watch your inbox for next steps from the LinkSkool team.</p>
             </div>
             <button type="button" class="w-10 h-10 rounded-full hover:bg-white/15 text-white cursor-pointer"
               @click="closeReservationSuccessModal">
@@ -1049,8 +1049,8 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="p-6 space-y-4">
-          <div v-if="hasWhatsappGroupUrl" class="rounded-xl border border-blue-100 bg-blue-50 p-4">
-            <p class="text-sm text-blue-900">
+          <div v-if="hasWhatsappGroupUrl" class="rounded-xl border border-brand-soft bg-brand-soft p-4">
+            <p class="text-sm text-brand-ink">
               Stay updated in our learner community for onboarding updates, reminders, and live support.
             </p>
             <a :href="whatsappJoinLink" target="_blank" rel="noopener noreferrer"
@@ -1071,12 +1071,12 @@ onBeforeUnmount(() => {
 
           <div class="flex flex-wrap items-center justify-end gap-3 pt-1">
             <RouterLink to="/#programs"
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700">
+              class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-brand-light/50 hover:text-brand">
               <span>Explore More Programs</span>
               <i class="fa-solid fa-arrow-right"></i>
             </RouterLink>
             <button type="button"
-              class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:shadow-lg"
+              class="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-ink"
               @click="closeReservationSuccessModal">
               <span>Done</span>
             </button>
