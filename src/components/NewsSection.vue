@@ -2,6 +2,7 @@
 import { RouterLink } from 'vue-router'
 
 import AdSenseSlot from '@/components/AdSenseSlot.vue'
+import ShareButton from '@/components/ShareButton.vue'
 import { adsenseConfig } from '@/config/adsense'
 import type { NewsCard, NewsCategory } from '@/data/news'
 
@@ -79,11 +80,15 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
 
       <div v-else class="news-grid mt-6">
         <template v-for="(item, index) in newsItems" :key="item.id">
-          <RouterLink
-            :to="`/news/${item.slug}`"
+          <article
             class="news-card card-lift group relative overflow-hidden rounded-[14px] border border-slate-200/80 bg-white"
             :class="cardClassBySize[item.size]"
           >
+            <RouterLink
+              :to="`/news/${item.slug}`"
+              class="absolute inset-0 z-10"
+              :aria-label="`Read ${item.title}`"
+            />
             <template v-if="item.size === 'square'">
               <div class="relative h-[52%] overflow-hidden">
                 <img
@@ -103,6 +108,7 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
                 >
                   +{{ (item.images?.length ?? 1) - 1 }}
                 </div>
+                <ShareButton class="absolute bottom-3 right-3 z-20" :share-data="item.share" />
               </div>
 
               <div class="flex h-[48%] flex-col justify-end gap-3 bg-white p-4">
@@ -142,6 +148,11 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
               >
                 +{{ (item.images?.length ?? 1) - 1 }}
               </div>
+              <ShareButton
+                class="absolute top-4 z-20"
+                :class="(item.images?.length ?? 0) > 1 ? 'right-16' : 'right-4'"
+                :share-data="item.share"
+              />
 
               <div class="absolute inset-x-0 bottom-0 flex items-start justify-between gap-4 p-4 sm:p-5">
                 <h2
@@ -159,7 +170,7 @@ const shouldShowInlineAd = (index: number) => (index + 1) % 10 === 0
                 </span>
               </div>
             </template>
-          </RouterLink>
+          </article>
 
           <AdSenseSlot
             v-if="shouldShowInlineAd(index)"

@@ -97,7 +97,7 @@ const metrics = [
             <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
               <div class="flex items-center gap-2.5">
                 <img :src="logoSrc" alt="" class="h-6 w-6 object-contain" />
-                <span class="text-[15px] font-semibold tracking-tight text-slate-900">LinkSkool</span>
+                <span class="text-[15px] font-semibold tracking-tight"><span class="text-brand">Link</span><span class="text-orange">Skool</span></span>
               </div>
               <span class="text-xs font-medium text-slate-400">Second term · SS2</span>
             </div>

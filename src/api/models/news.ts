@@ -6,6 +6,17 @@ export interface NewsImage {
   url: string
 }
 
+export interface NewsShare {
+  url: string
+  title: string
+  pageTitle: string
+  description: string
+  image: string
+  type: string
+  card: string
+  siteName: string
+}
+
 export interface ApiNewsItem {
   id: number
   title: string
@@ -24,6 +35,7 @@ export interface ApiNewsItem {
   slug: string
   categories?: NewsCategory[]
   readTime: number
+  share: NewsShare
 }
 
 export interface NewsCategory {

@@ -57,7 +57,7 @@ onMounted(async () => {
         <div class="lg:col-span-2 lg:pr-8">
           <RouterLink to="/" class="inline-flex items-center gap-2.5">
             <img :src="logoSrc" alt="" class="h-8 w-auto" />
-            <span class="text-xl font-semibold tracking-tight text-white">LinkSkool</span>
+            <span class="text-xl font-semibold tracking-tight"><span class="text-brand">Link</span><span class="text-orange">Skool</span></span>
           </RouterLink>
           <p class="mt-5 max-w-sm leading-7">
             Education infrastructure for Africa — connecting learning, assessment, records and

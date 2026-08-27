@@ -17,7 +17,7 @@ const toggleMobileMenu = () => {
                 <RouterLink to="/" class="flex items-center gap-2 group">
                     <img src="@/assets/logo.png" alt="LinkSkool"
                         class="h-8 w-auto transition-transform group-hover:scale-105" />
-                    <span class="text-xl font-bold tracking-tight text-slate-950">Link<span class="text-brand">Skool</span></span>
+                    <span class="text-xl font-bold tracking-tight"><span class="text-brand">Link</span><span class="text-orange">Skool</span></span>
                 </RouterLink>
 
                 <!-- Desktop Navigation -->
