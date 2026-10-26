@@ -25,6 +25,16 @@ const taskOptions = ref<PublicBoard["tasks"]>([]);
 const rows = computed<BoardRow[]>(() => (scope.value === "staff" ? (board.value?.staff ?? []) : (board.value?.branches ?? [])));
 const podium = computed(() => rows.value.filter((r) => r.rank <= 3 && r.approved > 0).slice(0, 3));
 const rest = computed(() => rows.value.filter((r) => !podium.value.includes(r)));
+// A long board: find yourself by name, or page down 50 at a time.
+const PAGE = 50;
+const q = ref("");
+const shown = ref(PAGE);
+const matches = computed(() => {
+  const term = q.value.trim().toLowerCase();
+  return term ? rest.value.filter((r) => `${r.name} ${r.branch ?? ""}`.toLowerCase().includes(term)) : rest.value;
+});
+const visible = computed(() => matches.value.slice(0, shown.value));
+watch([scope, q, board], () => (shown.value = PAGE));
 // Second, first, third: the winner in the middle, raised.
 const podiumOrder = computed(() => {
   const [first, second, third] = podium.value;
@@ -151,8 +161,18 @@ onUnmounted(remove);
 
           <!-- Everyone else -->
           <section v-if="rest.length" class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <div v-if="rest.length > 10" class="border-b border-slate-100 p-2">
+              <input
+                v-model="q"
+                type="search"
+                :placeholder="scope === 'staff' ? 'Find a name or branch' : 'Find a branch'"
+                class="w-full rounded-lg bg-slate-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand"
+                aria-label="Search the leaderboard"
+              />
+            </div>
+            <p v-if="!matches.length" class="px-4 py-6 text-center text-sm text-slate-500">No one matches “{{ q }}”.</p>
             <ol class="divide-y divide-slate-100">
-              <li v-for="r in rest" :key="`${scope}-${r.rank}-${r.name}`" class="flex items-center gap-3 px-4 py-3">
+              <li v-for="r in visible" :key="`${scope}-${r.rank}-${r.name}`" class="flex items-center gap-3 px-4 py-3">
                 <span class="w-7 text-center text-sm font-semibold text-slate-500">{{ r.rank }}</span>
                 <span class="min-w-0 flex-1">
                   <span class="block truncate text-slate-800">{{ r.name }}</span>
@@ -167,6 +187,14 @@ onUnmounted(remove);
                 </span>
               </li>
             </ol>
+            <button
+              v-if="matches.length > visible.length"
+              type="button"
+              class="block w-full cursor-pointer border-t border-slate-100 py-3 text-sm font-semibold text-brand hover:bg-slate-50"
+              @click="shown += PAGE"
+            >
+              Show more · {{ matches.length - visible.length }} left
+            </button>
           </section>
 
           <details class="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
