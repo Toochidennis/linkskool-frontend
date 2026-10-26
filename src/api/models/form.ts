@@ -33,11 +33,36 @@ export interface FormNextAction {
   auto: boolean
 }
 
-/** A task: whose staff do it, what they copy, and where this person stands. */
+export type SharePlatform = 'whatsapp' | 'x' | 'facebook' | 'linkedin' | 'telegram'
+
+/** A post to send out in one tap: the caption and link as one text, and files to attach. */
+export interface ShareStep {
+  kind: 'share'
+  caption: string
+  link: string | null
+  /** Caption then link, ready to send. */
+  text: string
+  files: { file: string; name: string; size: number; url: string; type: string }[]
+  /** A link per platform that opens it with the post filled in; files go only through the share sheet. */
+  shareLinks: { platform: SharePlatform; url: string }[]
+  instruction: string | null
+}
+
+/** A link to act on, such as a video to watch and comment on, under the button the team named. */
+export interface OpenStep {
+  kind: 'open'
+  url: string
+  label: string
+  instruction: string | null
+}
+
+export type TaskStep = ShareStep | OpenStep
+
+/** A task: whose staff do it, the steps before the proof, and where this person stands. */
 export interface FormTask {
   organization: string | null
   deadline: string | null
-  shareKit: { kind: 'text' | 'link'; label: string; value: string }[]
+  steps: TaskStep[]
   /** The signed-in person's response, or null before they send one. */
   mine: {
     status: 'pending' | 'approved' | 'rejected'

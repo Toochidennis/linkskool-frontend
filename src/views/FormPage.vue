@@ -6,6 +6,7 @@ import { ApiError } from "@/api/client";
 import type { FormAnswers, FormField, FormNextAction, FormSession, PublicForm } from "@/api/models";
 import { formService } from "@/api/services";
 import FormFieldInput from "@/components/form/FormFieldInput.vue";
+import TaskSteps from "@/components/form/TaskSteps.vue";
 import GoogleSignInButton from "@/components/form/GoogleSignInButton.vue";
 import { siteLinks } from "@/config/site";
 import { FILE_KINDS } from "@/components/form/fileKinds";
@@ -48,16 +49,6 @@ const needsSignIn = computed(() => !!form.value?.requireSignIn && !session.value
 const task = computed(() => form.value?.task ?? null);
 /** An approved task is done: no form to fill again. */
 const taskDone = computed(() => task.value?.mine?.status === "approved");
-const copied = ref<number | null>(null);
-const copyKit = async (i: number, value: string) => {
-  try {
-    await navigator.clipboard.writeText(value);
-    copied.value = i;
-    window.setTimeout(() => (copied.value = null), 1500);
-  } catch {
-    window.prompt("Copy this", value);
-  }
-};
 const deadlineText = computed(() =>
   task.value?.deadline
     ? new Date(`${task.value.deadline.replace(" ", "T")}Z`).toLocaleString(undefined, {
@@ -447,7 +438,7 @@ onUnmounted(() => {
           <div v-else class="pb-5"></div>
         </header>
 
-        <!-- A task: the deadline, what to copy, and where this person stands. -->
+        <!-- A task: the deadline, the steps, and where this person stands. -->
         <section
           v-if="task && state !== 'sent'"
           class="space-y-3 rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-slate-200"
@@ -513,39 +504,18 @@ onUnmounted(() => {
             </p>
           </div>
 
-          <div v-if="task.shareKit.length && !taskDone" class="space-y-2">
-            <p class="text-sm font-semibold text-slate-900">What to share</p>
-            <div
-              v-for="(item, i) in task.shareKit"
-              :key="i"
-              class="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3"
-            >
-              <div class="min-w-0 flex-1">
-                <p v-if="item.label" class="text-xs font-medium text-slate-500">{{ item.label }}</p>
-                <a
-                  v-if="item.kind === 'link'"
-                  :href="item.value"
-                  target="_blank"
-                  rel="noopener"
-                  class="break-all text-sm font-medium text-brand hover:underline"
-                >
-                  {{ item.value }}
-                </a>
-                <p v-else class="whitespace-pre-line text-sm text-slate-800">{{ item.value }}</p>
-              </div>
-              <button
-                type="button"
-                class="flex-none cursor-pointer rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-brand ring-1 ring-slate-200 hover:bg-brand-soft"
-                @click="copyKit(i, item.value)"
+          <!-- What to do before the proof: share a post, watch a video, and so on. -->
+          <div v-if="task.steps.length && !taskDone" class="space-y-2">
+            <p class="text-sm font-semibold text-slate-900">What to do</p>
+            <TaskSteps :steps="task.steps" :token="token" />
+            <p class="flex items-center gap-2 pt-1 text-sm text-slate-600">
+              <span
+                class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand"
+                aria-hidden="true"
+                >{{ task.steps.length + 1 }}</span
               >
-                <i
-                  class="fa-solid mr-1"
-                  :class="copied === i ? 'fa-check' : 'fa-copy'"
-                  aria-hidden="true"
-                ></i
-                >{{ copied === i ? "Copied" : "Copy" }}
-              </button>
-            </div>
+              Then send your proof below.
+            </p>
           </div>
         </section>
 
