@@ -9,6 +9,8 @@ import NotFoundPage from '@/views/NotFoundPage.vue'
 import PaymentCompletionPage from '@/views/PaymentCompletionPage.vue'
 import PrivacyPolicyPage from '@/views/PrivacyPolicyPage.vue'
 import ReservationCompletionPage from '@/views/ReservationCompletionPage.vue'
+import RegistrationPage from '@/views/RegistrationPage.vue'
+import RegistrationNextStepsPage from '@/views/RegistrationNextStepsPage.vue'
 import ResetPasswordPage from '@/views/ResetPasswordPage.vue'
 import TermsOfUsePage from '@/views/TermsOfUsePage.vue'
 import NewsPage from '@/views/NewsPage.vue'
@@ -95,6 +97,16 @@ const router = createRouter({
       path: '/reservation/completion',
       name: 'reservation-completion',
       component: ReservationCompletionPage,
+    },
+    {
+      path: '/registration/:token',
+      name: 'registration',
+      component: RegistrationPage,
+    },
+    {
+      path: '/registration/:token/next-steps',
+      name: 'registration-next-steps',
+      component: RegistrationNextStepsPage,
     },
     {
       path: '/reset-password',

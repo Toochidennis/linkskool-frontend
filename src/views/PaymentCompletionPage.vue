@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
@@ -18,6 +18,7 @@ interface StepSegment {
 }
 
 const route = useRoute()
+const router = useRouter()
 
 const normalizeQueryKey = (key: string) => key.trim().replace(/^amp;/i, '').toLowerCase()
 
@@ -71,6 +72,9 @@ const hasPaymentCallbackContext = computed(() => {
   if (callbackStatus.value.trim()) return true
   return Object.keys(route.query).length > 0
 })
+
+/** Set when the payment came from a registration: success continues to its next steps. */
+const registrationToken = computed(() => getQueryParam('registration').trim())
 
 const callbackProgramSlug = computed(() => {
   return getQueryParam('program').trim()
@@ -268,6 +272,7 @@ const closeVideoModal = () => {
 }
 
 usePageMeta(() => ({
+  robots: 'noindex, nofollow',
   title: verificationState.value === 'success'
     ? 'Payment Complete | LinkSkool'
     : verificationState.value === 'loading'
@@ -302,6 +307,13 @@ const verifyPayment = async () => {
     const isPaid = await enrollmentService.paymentStatus(reference)
     verificationState.value = isPaid ? 'success' : 'failed'
     clearPendingPayment()
+    if (isPaid && registrationToken.value) {
+      await router.replace({
+        name: 'registration-next-steps',
+        params: { token: registrationToken.value },
+        query: { paid: '1' },
+      })
+    }
   } catch (error) {
     console.error('Failed to verify payment status:', error)
     if (callbackStatus.value === 'success') {
@@ -372,6 +384,12 @@ watch(paymentReference, () => {
             <span>Start onboarding steps</span>
             <i class="fa-solid fa-arrow-down"></i>
           </a>
+
+          <RouterLink v-else-if="registrationToken" :to="{ name: 'registration', params: { token: registrationToken } }"
+            class="btn btn-primary">
+            <span>Back to your registration</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </RouterLink>
 
           <RouterLink v-else to="/#programs"
             class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-brand shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-soft hover:shadow-xl">

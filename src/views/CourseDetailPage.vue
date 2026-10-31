@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import EnrollmentCard from '@/components/EnrollmentCard.vue'
 import EnrollmentForm from '@/components/EnrollmentForm.vue'
-import type { CourseDetail, PaymentPayload, ReservePayload } from '@/api/models'
+import type { CourseDetail } from '@/api/models'
+import { ApiError } from '@/api/client'
 import { enrollmentService, programService } from '@/api/services'
 import { resolveAssetUrl } from '@/api/util/assetUrl'
 import { usePageMeta } from '@/composables/usePageMeta'
-import {
-  clearPendingPayment,
-  readPendingPayment,
-  savePendingPayment,
-  type PendingPayment,
-} from '@/utils/pendingPayment'
 
 interface EnrollmentFormData {
   firstName: string
@@ -31,122 +26,74 @@ const courseDetail = ref<CourseDetail | null>(null)
 const isLoading = ref(false)
 const loadError = ref('')
 const showEnrollmentForm = ref(false)
-const enrollmentAction = ref<'pay' | 'reserve' | 'free'>('pay')
 const submitError = ref('')
-const successMessage = ref('')
 const isSubmitting = ref(false)
-const lastPaymentUrl = ref('')
-const lastPaymentReference = ref('')
-const pendingPayment = ref<PendingPayment | null>(readPendingPayment())
-const isCheckingPendingPayment = ref(false)
-const configuredPaymentCallbackUrl = (import.meta.env.VITE_PAYMENT_CALLBACK_URL as string | undefined)?.trim() ?? ''
-const PAYMENT_CALLBACK_URL = configuredPaymentCallbackUrl || `${window.location.origin}/payment/completion`
 
-const buildPaymentCallbackUrl = (programSlug?: string | null, whatsappGroupLink?: string | null) => {
-  const raw = PAYMENT_CALLBACK_URL.trim()
-  if (!raw) return `${window.location.origin}/payment/completion`
+/** The page only exists with its cohort reference, so its address keeps it. */
+const pageUrl = computed(() => {
+  const ref = typeof route.query.ref === 'string' ? route.query.ref : ''
+  const base = `https://linkskool.com/courses/${route.params.courseId}`
+  return ref ? `${base}?ref=${encodeURIComponent(ref)}` : base
+})
 
-  const whatsapp = whatsappGroupLink?.trim() ?? ''
+const pageImage = computed(() => {
+  const detail = courseDetail.value
+  const image = detail?.cohort.imageUrl || detail?.course.imageUrl
+  return (image && resolveAssetUrl(image)) || 'https://linkskool.com/og-image.png'
+})
 
-  try {
-    const callbackUrl = new URL(raw)
-    if (programSlug) {
-      callbackUrl.searchParams.set('program', programSlug)
-    }
-    if (whatsapp) {
-      callbackUrl.searchParams.set('whatsapp', whatsapp)
-    }
-    return callbackUrl.toString()
-  } catch {
-    const queryParts: string[] = []
-    if (programSlug) {
-      queryParts.push(`program=${encodeURIComponent(programSlug)}`)
-    }
-    if (whatsapp) {
-      queryParts.push(`whatsapp=${encodeURIComponent(whatsapp)}`)
-    }
+const plainDescription = computed(() => {
+  const detail = courseDetail.value
+  const raw = detail?.cohort.description || detail?.course.description || ''
+  return raw.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+})
 
-    if (queryParts.length === 0) {
-      return raw
-    }
+const toIsoDate = (value?: string | null) => {
+  if (!value) return undefined
+  const date = new Date(value.replace(' ', 'T'))
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
+}
 
-    const separator = raw.includes('?') ? '&' : '?'
-    return `${raw}${separator}${queryParts.join('&')}`
+/** schema.org Course, so the course can appear in Google's course results. */
+const courseJsonLd = computed(() => {
+  const detail = courseDetail.value
+  if (!detail) return null
+  const { cohort, course, program } = detail
+  const free = Boolean(cohort.isFree)
+  const cost = cohort.cost ?? 0
+  const price = free ? 0 : Math.round((cost - (cost * (cohort.discount ?? 0)) / 100) * 100) / 100
+  const mode = (cohort.deliveryMode || '').toLowerCase()
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: course.courseName,
+    description: plainDescription.value || `${course.courseName} on LinkSkool.`,
+    url: pageUrl.value,
+    image: pageImage.value,
+    inLanguage: 'en',
+    provider: { '@type': 'Organization', name: 'LinkSkool', sameAs: 'https://linkskool.com' },
+    ...(program?.name ? { isPartOf: { '@type': 'EducationalOccupationalProgram', name: program.name } } : {}),
+    offers: {
+      '@type': 'Offer',
+      category: free ? 'Free' : 'Paid',
+      price,
+      priceCurrency: 'NGN',
+      url: pageUrl.value,
+      availability: isEnrollmentClosed.value ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+      ...(toIsoDate(cohort.enrollmentDeadline) ? { validThrough: toIsoDate(cohort.enrollmentDeadline) } : {}),
+    },
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      name: cohort.title,
+      courseMode: mode === 'onsite' ? 'Onsite' : mode === 'hybrid' ? 'Blended' : 'Online',
+      ...(toIsoDate(cohort.startDate) ? { startDate: toIsoDate(cohort.startDate) } : {}),
+      ...(toIsoDate(cohort.endDate) ? { endDate: toIsoDate(cohort.endDate) } : {}),
+      ...(cohort.instructorName ? { instructor: { '@type': 'Person', name: cohort.instructorName } } : {}),
+    },
   }
-}
+})
 
-const hasPendingPayment = computed(() => Boolean(pendingPayment.value?.reference && pendingPayment.value?.paymentUrl))
-
-const syncPendingPaymentState = (value: PendingPayment | null) => {
-  pendingPayment.value = value
-  lastPaymentReference.value = value?.reference ?? ''
-  lastPaymentUrl.value = value?.paymentUrl ?? ''
-}
-
-const setPendingPaymentState = (value: PendingPayment) => {
-  savePendingPayment(value)
-  syncPendingPaymentState(value)
-}
-
-const clearPendingPaymentState = () => {
-  clearPendingPayment()
-  syncPendingPaymentState(null)
-}
-
-const checkPendingPaymentStatus = async () => {
-  const reference = pendingPayment.value?.reference
-  if (!reference) return
-
-  isCheckingPendingPayment.value = true
-
-  try {
-    const isPaid = await enrollmentService.paymentStatus(reference)
-    clearPendingPaymentState()
-    submitError.value = ''
-    successMessage.value = isPaid
-      ? 'Your previous payment has been confirmed.'
-      : 'Previous checkout is no longer active. You can start a new payment.'
-  } catch (error) {
-    console.error('Failed to verify pending payment status:', error)
-  } finally {
-    isCheckingPendingPayment.value = false
-  }
-}
-
-const resumePendingPayment = () => {
-  if (!pendingPayment.value?.paymentUrl) return
-  window.location.assign(pendingPayment.value.paymentUrl)
-}
-
-const discardPendingPayment = () => {
-  clearPendingPaymentState()
-  submitError.value = ''
-  successMessage.value = 'Previous checkout cleared. You can start a new payment now.'
-}
-
-const handleWindowFocus = () => {
-  if (hasPendingPayment.value && !isCheckingPendingPayment.value) {
-    checkPendingPaymentStatus()
-  }
-}
-
-const handleDocumentVisibility = () => {
-  if (document.visibilityState === 'visible') {
-    handleWindowFocus()
-  }
-}
-
-// Dynamic meta tags based on course data
-usePageMeta(() => ({
-  title: courseDetail.value
-    ? `${courseDetail.value.course.courseName} - Professional Course | LinkSkool`
-    : 'Course Details | LinkSkool',
-  description: courseDetail.value?.course.description || courseDetail.value?.cohort.description || 'Explore this LinkSkool course, what it covers and how to enrol.',
-  keywords: `${courseDetail.value?.course.courseName || 'course'}, online learning, professional development, skill training`,
-  url: `https://linkskool.com/courses/${route.params.courseId}`,
-  image: courseDetail.value?.course.imageUrl ? resolveAssetUrl(courseDetail.value.course.imageUrl) || 'https://linkskool.com/og-image.png' : 'https://linkskool.com/og-image.png',
-  type: 'article',
-}))
 
 const decodeRef = (value: string) => {
   try {
@@ -254,29 +201,22 @@ const isEnrollmentClosed = computed(() => {
   return deadline.getTime() < Date.now()
 })
 
-const handleEnroll = () => {
-  if (isEnrollmentClosed.value) return
+usePageMeta(() => ({
+  title: courseDetail.value
+    ? `${courseDetail.value.course.courseName} - Professional Course | LinkSkool`
+    : 'Course Details | LinkSkool',
+  description: (plainDescription.value || 'Explore this LinkSkool course, what it covers and how to register.').slice(0, 160),
+  keywords: `${courseDetail.value?.course.courseName || 'course'}, online learning, professional development, skill training`,
+  url: pageUrl.value,
+  image: pageImage.value,
+  type: 'article',
+  jsonLd: courseJsonLd.value,
+}))
 
-  if (!isFreeCourse.value && hasPendingPayment.value) {
-    submitError.value = 'You already have a checkout in progress. Resume or clear it before starting another one.'
-    return
-  }
-
-  submitError.value = ''
-  successMessage.value = ''
-  if (!hasPendingPayment.value) {
-    lastPaymentUrl.value = ''
-    lastPaymentReference.value = ''
-  }
-  enrollmentAction.value = isFreeCourse.value ? 'free' : 'pay'
-  showEnrollmentForm.value = true
-}
-
-const handleReserve = () => {
+/** Register now: one form for every course. A paid course is paid for after, now or later. */
+const handleRegister = () => {
   if (isEnrollmentClosed.value) return
   submitError.value = ''
-  successMessage.value = ''
-  enrollmentAction.value = 'reserve'
   showEnrollmentForm.value = true
 }
 
@@ -286,133 +226,41 @@ const closeEnrollmentForm = () => {
 }
 
 const handleFormSubmit = async (formData: EnrollmentFormData) => {
-  if (isSubmitting.value) return
+  if (isSubmitting.value || !courseDetail.value) return
+
+  const detail = courseDetail.value
+  if (!detail.cohort.cohortId) {
+    submitError.value = 'This cohort is unavailable for registration right now.'
+    return
+  }
 
   submitError.value = ''
-  successMessage.value = ''
-  if (!hasPendingPayment.value) {
-    lastPaymentUrl.value = ''
-    lastPaymentReference.value = ''
-  }
-
-  if (!courseDetail.value) {
-    submitError.value = 'Course details are unavailable right now.'
-    return
-  }
-
-  const cohortId = courseDetail.value.cohort.cohortId
-
-  if (!cohortId) {
-    submitError.value = 'This cohort is unavailable for enrollment right now.'
-    return
-  }
-
-  const basePayload = {
-    firstName: formData.firstName.trim(),
-    lastName: formData.lastName.trim(),
-    email: formData.email.trim(),
-    phone: formData.phone.trim(),
-    programId: courseDetail.value.program.id,
-    items: [
-      {
-        courseId: courseDetail.value.course.courseId,
-        cohortId,
-      },
-    ],
-  }
-
   isSubmitting.value = true
 
   try {
-    if (enrollmentAction.value === 'pay') {
-      const payload: PaymentPayload = {
-        ...basePayload,
-        callbackUrl: buildPaymentCallbackUrl(courseDetail.value.program.slug, courseDetail.value.cohort.whatsappGroupLink),
-      }
-
-      const paymentResponse = await enrollmentService.makePayment(payload)
-      const paymentStatus = paymentResponse.status
-      const paymentMessage = typeof paymentResponse.message === 'string'
-        ? paymentResponse.message.trim()
-        : ''
-
-      if (paymentStatus === 'blocked') {
-        clearPendingPaymentState()
-        submitError.value = paymentMessage || 'Payment is currently blocked. Please contact support.'
-        return
-      }
-
-      const paymentUrl = typeof paymentResponse.paymentUrl === 'string'
-        ? paymentResponse.paymentUrl.trim()
-        : ''
-
-      if (!paymentUrl) {
-        submitError.value = paymentMessage || 'Payment link was not returned. Please try again.'
-        return
-      }
-
-      const pendingCheckout = {
-        reference: paymentResponse.reference || '',
-        paymentUrl,
-        createdAt: Date.now(),
-      }
-
-      setPendingPaymentState(pendingCheckout)
-      showEnrollmentForm.value = false
-      successMessage.value = 'Payment initialized. Opening secure checkout...'
-      window.setTimeout(() => {
-        window.location.assign(paymentUrl)
-      }, 150)
-      return
-    }
-
-    if (enrollmentAction.value === 'free') {
-      const payload: ReservePayload = basePayload
-      const isEnrolled = await enrollmentService.freeEnrollment(payload)
-
-      if (!isEnrolled) {
-        submitError.value = 'Enrollment could not be completed right now. Please try again.'
-        return
-      }
-
-      showEnrollmentForm.value = false
-      successMessage.value = 'Your enrollment is complete.'
-      await router.push({
-        name: 'reservation-completion',
-        query: {
-          program: courseDetail.value.program.slug,
-          completion: 'enrollment',
-          whatsapp: courseDetail.value.cohort.whatsappGroupLink ?? '',
-        },
-      })
-      return
-    }
-
-    const payload: ReservePayload = basePayload
-    const isReserved = await enrollmentService.reserve(payload)
-
-    if (!isReserved) {
-      submitError.value = 'Reservation was not completed. Please try again.'
-      return
-    }
+    const result = await enrollmentService.register({
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      programId: detail.program.id,
+      courseId: detail.course.courseId,
+      cohortId: detail.cohort.cohortId,
+    })
 
     showEnrollmentForm.value = false
-    successMessage.value = 'Your seat reservation is complete.'
-    await router.push({
-      name: 'reservation-completion',
-      query: {
-        program: courseDetail.value.program.slug,
-        completion: 'reservation',
-        whatsapp: courseDetail.value.cohort.whatsappGroupLink ?? '',
-      },
-    })
+    // Nothing to pay: straight to getting set up.
+    await router.push(
+      result.status === 'unpaid'
+        ? { name: 'registration', params: { token: result.token } }
+        : { name: 'registration-next-steps', params: { token: result.token } },
+    )
   } catch (error) {
-    console.error('Failed to submit enrollment request:', error)
-    submitError.value = enrollmentAction.value === 'pay'
-      ? 'Payment could not be completed right now. Please try again.'
-      : enrollmentAction.value === 'reserve'
-      ? 'Reservation could not be completed right now. Please try again.'
-      : 'Enrollment could not be completed right now. Please try again.'
+    console.error('Failed to register:', error)
+    submitError.value =
+      error instanceof ApiError && error.status < 500 && error.message
+        ? error.message
+        : 'Registration could not be completed right now. Please try again.'
   } finally {
     isSubmitting.value = false
   }
@@ -441,16 +289,7 @@ const fetchCourseDetail = async () => {
 }
 
 onMounted(() => {
-  syncPendingPaymentState(readPendingPayment())
-  window.addEventListener('focus', handleWindowFocus)
-  document.addEventListener('visibilitychange', handleDocumentVisibility)
   fetchCourseDetail()
-  checkPendingPaymentStatus()
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('focus', handleWindowFocus)
-  document.removeEventListener('visibilitychange', handleDocumentVisibility)
 })
 
 watch(detailRef, () => {
@@ -491,47 +330,6 @@ watch(detailRef, () => {
 
         <div class="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-12">
           <div class="min-w-0 space-y-8">
-            <div v-if="submitError" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {{ submitError }}
-            </div>
-
-            <div v-if="successMessage"
-              class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-              {{ successMessage }}
-            </div>
-
-            <div v-if="lastPaymentUrl"
-              class="rounded-xl border border-brand-light/40 bg-brand-soft px-4 py-3 text-sm text-brand-ink">
-              <p class="font-semibold">Checkout link ready</p>
-              <p class="mt-1 text-brand">If payment did not open automatically, continue with the button below.</p>
-              <div class="mt-2 flex flex-wrap items-center gap-3">
-                <button type="button" @click="resumePendingPayment"
-                  class="inline-flex items-center gap-2 rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-light">
-                  <i class="fa-solid fa-up-right-from-square"></i>
-                  <span>Resume Payment</span>
-                </button>
-                <span v-if="lastPaymentReference" class="min-w-0 break-all text-xs text-brand">Ref: {{ lastPaymentReference }}</span>
-              </div>
-            </div>
-
-            <div v-if="hasPendingPayment"
-              class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              <p class="font-semibold">Checkout in progress</p>
-              <p class="mt-1 text-amber-800">Finish the existing payment before starting another checkout.</p>
-              <div class="mt-2 flex flex-wrap items-center gap-3">
-                <button type="button" @click="resumePendingPayment"
-                  class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-500">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                  <span>Resume Payment</span>
-                </button>
-                <button type="button" @click="discardPendingPayment"
-                  class="inline-flex items-center gap-2 rounded-lg border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100">
-                  <i class="fa-solid fa-rotate-left"></i>
-                  <span>Start New Checkout</span>
-                </button>
-              </div>
-            </div>
-
             <div class="border-b border-slate-200 pb-8">
               <p class="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-brand">{{ courseDetail.program.name }}</p>
               <h1 class="break-words text-3xl font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-4xl lg:text-5xl">
@@ -590,7 +388,7 @@ watch(detailRef, () => {
           </div>
 
           <aside class="min-w-0">
-            <EnrollmentCard :course-detail="courseDetail" @enroll="handleEnroll" @reserve="handleReserve" />
+            <EnrollmentCard :course-detail="courseDetail" @register="handleRegister" />
           </aside>
         </div>
       </div>
@@ -605,7 +403,7 @@ watch(detailRef, () => {
       </div>
     </div>
 
-    <EnrollmentForm v-if="showEnrollmentForm && courseDetail" :course-detail="courseDetail" :mode="enrollmentAction"
+    <EnrollmentForm v-if="showEnrollmentForm && courseDetail" :course-detail="courseDetail" :mode="isFreeCourse ? 'free' : 'register'"
       :submit-error="submitError" :is-submitting="isSubmitting" @close="closeEnrollmentForm" @submit="handleFormSubmit" />
 
     <AppFooter />

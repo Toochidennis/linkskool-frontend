@@ -9,6 +9,7 @@ import { usePageMeta } from '@/composables/usePageMeta'
 const router = useRouter()
 
 usePageMeta({
+  robots: 'noindex, follow',
   title: '404 - Page Not Found | LinkSkool',
   description:
     'This page could not be found. Head back to LinkSkool to explore the platform and our learning programs.',

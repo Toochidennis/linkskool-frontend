@@ -1,7 +1,6 @@
 export type { CourseCohortDetail, CourseDetail } from './course-detail';
 export type { Cohort, TrialType } from './cohort';
 export type { Course } from './course';
-export * from './enrollment';
 export * from './program-courses';
 export * from './program';
 export * from './serverResponse';
@@ -12,3 +11,4 @@ export * from './reserve-payload';
 export * from './payment-response';
 export * from './reset-password-payload';
 export * from './form';
+export * from './registration';

@@ -1,5 +1,13 @@
 import { apiRequest } from "../client";
-import type { PaymentPayload, PaymentResponse, ReservePayload } from "../models";
+import type {
+  PaymentPayload,
+  PaymentResponse,
+  RegisterPayload,
+  RegisterResult,
+  Registration,
+  RegistrationCheckout,
+  ReservePayload,
+} from "../models";
 
 export const enrollmentService = {
   async makePayment(payload: PaymentPayload, signal?: AbortSignal) {
@@ -20,12 +28,30 @@ export const enrollmentService = {
     return response.data;
   },
 
-    async freeEnrollment(payload: ReservePayload, signal?: AbortSignal) {
-    const response = await apiRequest<boolean>('learning/cohorts/enrollments/free', {
+  /** Register now: details in, a place held, and the registration's token back. */
+  async register(payload: RegisterPayload, signal?: AbortSignal) {
+    const response = await apiRequest<RegisterResult>('learning/cohorts/enrollments/register', {
       method: "POST",
       signal,
       body: payload,
     });
+    return response.data;
+  },
+
+  async registration(token: string, signal?: AbortSignal) {
+    const response = await apiRequest<Registration>(
+      `learning/cohorts/enrollments/registrations/${encodeURIComponent(token)}`,
+      { method: "GET", signal },
+    );
+    return response.data;
+  },
+
+  /** A fresh checkout for an unpaid registration. */
+  async registrationCheckout(token: string, callbackUrl: string, signal?: AbortSignal) {
+    const response = await apiRequest<RegistrationCheckout>(
+      `learning/cohorts/enrollments/registrations/${encodeURIComponent(token)}/checkout`,
+      { method: "POST", signal, body: { callbackUrl } },
+    );
     return response.data;
   },
 

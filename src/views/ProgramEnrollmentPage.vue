@@ -108,6 +108,7 @@ const programRef = computed(() => {
 
 // Dynamic meta tags based on enrollment data
 usePageMeta(() => ({
+  robots: 'noindex, follow',
   title: program.value
     ? `Enroll in ${program.value.name} | LinkSkool`
     : 'Program Enrollment | LinkSkool',

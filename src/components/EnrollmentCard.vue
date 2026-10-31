@@ -5,7 +5,7 @@ import type { CourseDetail } from '@/api/models'
 import { useCountdown } from '@/composables/useCountdown'
 
 const props = defineProps<{ courseDetail: CourseDetail }>()
-const emit = defineEmits<{ enroll: []; reserve: [] }>()
+const emit = defineEmits<{ register: [] }>()
 
 const formatNaira = (value: number) =>
   new Intl.NumberFormat('en-NG', {
@@ -57,7 +57,7 @@ const isEnrollmentClosed = computed(
 
 const ctaLabel = computed(() => {
   if (isEnrollmentClosed.value) return 'Enrollment closed'
-  return isFreeCourse.value ? 'Enroll for free' : 'Enroll now'
+  return isFreeCourse.value ? 'Register for free' : 'Register now'
 })
 
 const formatDate = (value?: string | null, fallback = 'Not set') => {
@@ -68,6 +68,13 @@ const formatDate = (value?: string | null, fallback = 'Not set') => {
 }
 
 const deadlineLabel = computed(() => formatDate(cohort.value.enrollmentDeadline, ''))
+
+/** Register now in three steps; a free course has nothing to pay. */
+const howItWorks = computed(() =>
+  isFreeCourse.value
+    ? ['Register', 'Get set up', 'Start learning']
+    : ['Register', 'Pay now or later', 'Start learning'],
+)
 
 const learningTypeLabel = computed(() =>
   cohort.value.learningType === 'instructor_led' ? 'Instructor-led' : 'Self-paced',
@@ -86,7 +93,7 @@ const information = computed(() => [
 <template>
   <div class="card card-raised sticky top-24 overflow-hidden">
     <!-- fee -->
-    <div class="p-7" :class="countdown.isRunning.value ? 'pb-6' : 'border-b border-slate-100'">
+    <div class="p-7" :class="countdown.isRunning.value ? 'pb-5' : 'border-b border-slate-100'">
       <p class="text-sm font-medium text-slate-500">Course fee</p>
       <div class="mt-1.5 flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-1">
         <span class="break-all text-3xl font-semibold tracking-tight text-slate-950">{{ priceCurrent }}</span>
@@ -97,36 +104,44 @@ const information = computed(() => [
       </p>
     </div>
 
-    <!-- enrollment deadline: quiet, hairline-separated numerals -->
-    <div v-if="countdown.isRunning.value" class="border-y border-slate-100 px-7 py-6">
-      <div class="flex items-baseline justify-between gap-3">
-        <p
-          class="flex items-center gap-2 text-xs font-medium"
-          :class="isClosingSoon ? 'text-orange' : 'text-slate-500'"
-        >
-          <span
-            class="h-1.5 w-1.5 shrink-0 rounded-full"
-            :class="isClosingSoon ? 'bg-orange' : 'bg-brand'"
-          ></span>
-          Enrollment closes in
-        </p>
-        <p v-if="deadlineLabel" class="text-xs text-slate-400">{{ deadlineLabel }}</p>
-      </div>
-      <dl class="mt-4 flex">
-        <div
-          v-for="segment in countdown.displaySegments.value"
-          :key="segment.label"
-          class="min-w-0 flex-1 border-l border-slate-100 pl-3 first:border-l-0 first:pl-0"
-        >
-          <dd class="text-2xl font-semibold tabular-nums tracking-tight text-slate-950">
-            {{ countdown.pad(segment.value) }}
-          </dd>
-          <dt class="mt-1 text-[10px] uppercase tracking-[0.14em] text-slate-400">{{ segment.label }}</dt>
+    <!-- enrollment deadline -->
+    <div v-if="countdown.isRunning.value" class="px-7 pb-2">
+      <div class="countdown-panel rounded-2xl px-5 py-5 text-white">
+        <div class="flex items-center justify-between gap-3">
+          <p class="flex items-center gap-2 text-xs font-medium text-white/70">
+            <span class="relative flex h-2 w-2 shrink-0">
+              <span
+                v-if="isClosingSoon"
+                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange opacity-60"
+              ></span>
+              <span
+                class="relative inline-flex h-2 w-2 rounded-full"
+                :class="isClosingSoon ? 'bg-orange' : 'bg-emerald-400'"
+              ></span>
+            </span>
+            {{ isClosingSoon ? 'Last day to join' : 'Enrollment closes in' }}
+          </p>
+          <p v-if="deadlineLabel" class="text-xs text-white/45">{{ deadlineLabel }}</p>
         </div>
-      </dl>
-      <p v-if="isClosingSoon" class="mt-4 text-xs leading-5 text-slate-500">
-        Last day to join this cohort.
-      </p>
+        <dl class="mt-4 flex items-start justify-between">
+          <template v-for="(segment, i) in countdown.displaySegments.value" :key="segment.label">
+            <span
+              v-if="i > 0"
+              class="pt-0.5 text-2xl font-light leading-none text-white/25"
+              aria-hidden="true"
+              >:</span
+            >
+            <div class="flex min-w-[3rem] flex-col items-center">
+              <dd class="text-[1.75rem] font-semibold leading-none tabular-nums tracking-tight">
+                {{ countdown.pad(segment.value) }}
+              </dd>
+              <dt class="mt-2 text-[10px] font-medium uppercase tracking-[0.18em] text-white/45">
+                {{ segment.label }}
+              </dt>
+            </div>
+          </template>
+        </dl>
+      </div>
     </div>
 
     <div class="p-7">
@@ -134,22 +149,33 @@ const information = computed(() => [
         type="button"
         class="btn btn-primary btn-block"
         :disabled="isEnrollmentClosed"
-        @click="emit('enroll')"
+        @click="emit('register')"
       >
         {{ ctaLabel }}
         <i v-if="!isEnrollmentClosed" class="fa-solid fa-arrow-right text-xs"></i>
       </button>
-      <button
-        v-if="!isFreeCourse && !isEnrollmentClosed"
-        type="button"
-        class="btn btn-secondary btn-block mt-3"
-        @click="emit('reserve')"
-      >
-        Reserve a seat
-      </button>
       <p v-if="isEnrollmentClosed" class="mt-3 text-sm leading-6 text-slate-500">
         Enrollment has closed for this cohort.
       </p>
+
+      <ol v-else class="mt-6 flex items-start" aria-label="How registering works">
+        <li
+          v-for="(step, i) in howItWorks"
+          :key="step"
+          class="relative flex flex-1 flex-col items-center text-center"
+        >
+          <span
+            v-if="i > 0"
+            class="absolute right-1/2 top-3 h-px w-full bg-slate-200"
+            aria-hidden="true"
+          ></span>
+          <span
+            class="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-brand-soft text-[11px] font-semibold text-brand ring-4 ring-white"
+            >{{ i + 1 }}</span
+          >
+          <span class="mt-1.5 text-[11px] leading-4 text-slate-500">{{ step }}</span>
+        </li>
+      </ol>
 
       <dl class="mt-8 space-y-5 border-t border-slate-100 pt-7">
         <div v-for="item in information" :key="item.label" class="flex min-w-0 items-start gap-3">
@@ -182,7 +208,7 @@ const information = computed(() => [
       type="button"
       :disabled="isEnrollmentClosed"
       class="mx-auto flex w-full max-w-lg items-center justify-between gap-4 rounded-[18px] bg-brand px-5 py-3 text-left text-white shadow-[0_10px_30px_-14px_rgba(27,58,158,0.9)] transition hover:bg-brand-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
-      @click="emit('enroll')"
+      @click="emit('register')"
     >
       <span class="flex min-w-0 flex-col gap-0.5">
         <span class="flex items-center gap-2">
@@ -219,3 +245,12 @@ const information = computed(() => [
     </button>
   </div>
 </template>
+
+<style scoped>
+.countdown-panel {
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(79, 118, 216, 0.35) 0%, transparent 55%),
+    linear-gradient(160deg, #14286e 0%, #0b1637 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+</style>

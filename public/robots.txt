@@ -1,24 +1,21 @@
 # Linkskool robots.txt
 # https://www.robotstxt.org/robotstxt.html
+#
+# One group for every crawler: a crawler that has a group of its own (as
+# Googlebot and Bingbot once did here) ignores the * rules entirely.
 
 User-agent: *
 Allow: /
+Allow: /sitemap.xml
+Allow: /api/v4/public/sitemap.xml
 Disallow: /api/
 Disallow: /*.json$
 Disallow: /*.xml$
 Disallow: /admin/
 Disallow: /private/
+# Private pages reached by a personal link; they also carry noindex.
+Disallow: /registration/
+Disallow: /payment/
+Disallow: /reservation/
 
-# Crawl delay to prevent server overload (not required, but recommended)
-Crawl-delay: 0
-
-# Sitemap location
-Sitemap: https://linkskool.com/sitemap.xml
-
-# Specific rules for Google
-User-agent: Googlebot
-Allow: /
-
-# Specific rules for Bing
-User-agent: Bingbot
-Allow: /
+Sitemap: https://linkskool.com/api/v4/public/sitemap.xml

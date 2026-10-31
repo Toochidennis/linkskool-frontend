@@ -38,6 +38,19 @@ RewriteRule ^d/([A-Za-z0-9]{12})/?$ https://linkskool.net/api/v4/public/leaderbo
 RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|Twitterbot|WhatsApp|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot) [NC]
 RewriteRule ^f/([A-Za-z0-9]{10})/?$ https://linkskool.net/api/v4/public/forms/$1/share [R=302,L]
 
+# A shared course previews with its own title, price, start date and picture.
+# The ref (the cohort, base64) is passed through as it came: NE keeps %3D intact.
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|Twitterbot|WhatsApp|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot) [NC]
+RewriteCond %{QUERY_STRING} (?:^|&)ref=([^&]+)
+RewriteRule ^courses/([0-9]+)/?$ https://linkskool.net/api/v4/public/courses/$1/share?ref=%1 [R=302,L,NE]
+
+# A shared program previews with its own name, description and banner.
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|Twitterbot|WhatsApp|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|redditbot) [NC]
+RewriteRule ^programs/([^/]+)/?$ https://linkskool.net/api/v4/public/programs/$1/share [R=302,L]
+
+# The sitemap is built by the API from live programs, courses and news.
+RewriteRule ^sitemap\.xml$ /api/v4/public/sitemap.xml [R=301,L]
+
 # If the request is for an existing file or directory, serve it directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

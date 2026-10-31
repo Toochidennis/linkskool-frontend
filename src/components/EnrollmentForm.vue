@@ -4,7 +4,8 @@ import type { CourseDetail } from '@/api/models'
 
 const props = defineProps<{
     courseDetail: CourseDetail
-    mode: 'pay' | 'reserve' | 'free'
+    /** register: a paid course, paid for after registering. free: nothing to pay. */
+    mode: 'register' | 'free'
     submitError?: string
     isSubmitting?: boolean
 }>()
@@ -97,7 +98,7 @@ const handleSubmit = async () => {
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
 
-                <h2 class="text-2xl font-bold mb-2">Enroll in Course</h2>
+                <h2 class="text-2xl font-bold mb-2">Register for this course</h2>
                 <p class="text-blue-100">{{ courseDetail.course.courseName }}</p>
             </div>
 
@@ -181,8 +182,11 @@ const handleSubmit = async () => {
                     <div class="flex items-start gap-3 p-4 bg-brand-soft rounded-xl">
                         <i class="fa-solid fa-info-circle text-brand mt-0.5"></i>
                         <p class="text-sm text-slate-700">
-                            By enrolling, you agree to our Terms of Service and Privacy Policy.
-                            You will receive course updates and important notifications via email.
+                            <template v-if="mode === 'register'">
+                                No payment yet. Registering holds your seat; you can pay right after or later.
+                            </template>
+                            We'll email you the curriculum. By registering, you agree to our Terms of Service and
+                            Privacy Policy.
                         </p>
                     </div>
                 </div>
@@ -200,7 +204,7 @@ const handleSubmit = async () => {
                             : 'hover:bg-brand-ink'
                     ]">
                         <i v-if="props.isSubmitting" class="fa-solid fa-spinner fa-spin"></i>
-                        <span v-else>{{ mode === 'reserve' ? 'Reserve Seat' : mode === 'free' ? 'Confirm Enrollment' : 'Proceed to Payment' }}</span>
+                        <span v-else>{{ mode === 'free' ? 'Register for free' : 'Register' }}</span>
                     </button>
                 </div>
             </form>

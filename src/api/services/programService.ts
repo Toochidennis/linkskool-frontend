@@ -1,6 +1,5 @@
 import { apiRequest } from "../client";
 import type { Program } from "../models/program";
-import type { CourseEnrollmentRequest } from "../models/enrollment";
 import type { ProgramCourses } from "../models/program-courses";
 import type { CourseDetail } from "../models/course-detail";
 
@@ -23,14 +22,6 @@ export const programService = {
         const response = await apiRequest<CourseDetail>(`programs/cohorts/${cohortSlug}`, {
             method: "GET",
             signal,
-        });
-        return response.data;
-    },
-    async enrollInCourse(cohortId: number, payload: CourseEnrollmentRequest, signal?: AbortSignal) {
-        const response = await apiRequest(`learning/cohorts/${cohortId}/enrollments`, {
-            method: "POST",
-            signal,
-            body: payload,
         });
         return response.data;
     },

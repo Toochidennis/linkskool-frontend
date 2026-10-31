@@ -191,6 +191,7 @@ const closeVideoModal = () => {
 }
 
 usePageMeta(() => ({
+  robots: 'noindex, nofollow',
   title: isEnrollmentCompletion.value ? 'Enrollment Complete | LinkSkool' : 'Reservation Complete | LinkSkool',
   description: isEnrollmentCompletion.value
     ? 'Your LinkSkool enrollment is complete. Follow the onboarding steps to get started.'
